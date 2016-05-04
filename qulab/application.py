@@ -9,12 +9,45 @@ import collections
 from PyQt4 import QtCore, QtGui
 import time
 import os
+import re
 import inspect
 import functools
 from qulab.task import TaskManager
 from qulab.data import DataManager
 from qulab.plot import PlotManager
 from qulab.config import config
+
+inline_mod  = re.compile(r'^\s*(.*)#.*{{{setting}}}\s*$')
+block_begin = re.compile(r'^(\s*)#{{{')
+block_end   = re.compile(r'^(\s*)#}}}')
+
+def __get_settings(fneme):
+    settings = []
+    in_setting_section = False
+    indent = 0
+
+    with open(fneme) as f:
+        lines = f.readlines()
+        for line in lines:
+            if not in_setting_section:
+                m = block_begin.search(line)
+                if m != None:
+                    in_setting_section = True
+                    indent = len(m.group(1))
+            elif in_setting_section:
+                m = block_end.search(line)
+                if m != None:
+                    in_setting_section = False
+                    indent = 0
+                else:
+                    settings.append(line[indent:])
+            else:
+                m = inline_mod.search(line)
+                if m != None:
+                    s = m.group(1)
+                    settings.append(s.strip())
+
+    return "".join(settings)
 
 class ReadOnlyDict():
     def __init__(self):
@@ -51,27 +84,13 @@ class Application:
         self._sweeps = []
         self._settings = None
 
-    def _get_settings(self):
-        settings = []
-        in_setting_section = False
-
-        with open(self.argv[0]) as f:
-            lines = f.readlines()
-            for line in lines:
-                if line[0:4] == "#{{{":
-                    in_setting_section = True
-                elif line[0:4] == "#}}}":
-                    in_setting_section = False
-                elif in_setting_section:
-                    settings.append(line)
-                else:
-                    pass
-        return "".join(settings)
-
     def get_settings(self):
         if self._settings is None:
-            self._settings = self._get_settings()
+            self._settings = __get_settings(self.argv[0])
         return self._settings
+
+    def open_instr(self, addr):
+        pass
 
     def sweep_channel(self, name, ranges, long_name='', unit='',
                       before=None, before_args=(),

@@ -8,15 +8,19 @@ class AmplitudeApp(Application):
 
     def discription(self):
         self.instruments = {
-            'ATS' : ATS(),
+            'ATS' : 'ATS9870::SYST1::1',
             'Me MW' : MWSource(),
             'Lo MW' : MWSource()
         }
 
         self.paramenters = [
-            dict(name='HeterodyneFreq', unit='Hz', value=50e6),
-            dict(name='RecordLength', unit='', value=1000),
-            dict(name='Repeats', unit='', value=1000)
+            dict(name='HeterodyneFreq', unit='Hz', default=50e6),
+            dict(name='Repeats', default=1000),
+            dict(name='RecordLength', default=1000),
+            dict(name='ReadoutPoint', default=50000),
+            dict(name='ATSTriggerDelay', default=180),
+            dict(name='ProbeTriggerChannel', default='Channel 2 - Marker 1'),
+            dict(name='ATSTriggerChannel', default='Channel 2 - Marker 2')
         ]
 
         AmplitudeDoc = '''
