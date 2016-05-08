@@ -49,6 +49,24 @@ def __get_settings(fneme):
 
     return "".join(settings)
 
+def __get_local_config_dir():
+    appdata = os.getenv('LOCALAPPDATA')
+    homepath = os.getenv('HOMEPATH')
+    home = os.getenv('HOME')
+
+    if appdata is not None:
+        localdata_base = appdata
+    elif homepath is not None:
+        localdata_base = homepath
+    elif home is not None:
+        localdata_base = home
+    else:
+        localdata_base = '.'
+
+    config_dir = os.path.join(localdata_base, 'QuLab')
+    os.makedirs(config_dir, exist_ok=True)
+    return config_dir
+
 class ReadOnlyDict():
     def __init__(self):
         self.__dict = {}
@@ -72,6 +90,7 @@ class Application:
         self.parent = parent
         self.children = []
         self.prog_name = os.path.basename(self.argv[0])
+        self._configs = __get_local_config_dir()
 
         self.instruments = {}
         self.parameters = []
@@ -84,6 +103,8 @@ class Application:
         self._sweeps = []
         self._settings = None
 
+        self.__param = []
+
     def get_settings(self):
         if self._settings is None:
             self._settings = __get_settings(self.argv[0])
@@ -91,6 +112,23 @@ class Application:
 
     def open_instr(self, addr):
         pass
+
+    def P(self, key):
+        for p in self.__param:
+            if p.name == key:
+                return p.value
+        if self.parent is not None:
+            return self.parent.P(key)
+        else:
+            return None
+
+    def set_P(self, key, value):
+        for p in self.__param:
+            if p.name == key:
+                p.value = value
+                return
+        if self.parent is not None:
+            self.parent.set_P(key, value)
 
     def sweep_channel(self, name, ranges, long_name='', unit='',
                       before=None, before_args=(),
