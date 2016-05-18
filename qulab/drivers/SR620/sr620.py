@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Dec 21 00:01:19 2013
-
-@author: feihoo87
-"""
 import struct
 from visa import VisaIOWarning
 

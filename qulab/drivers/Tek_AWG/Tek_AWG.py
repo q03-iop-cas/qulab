@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Jan 22 17:06:24 2016
-
-@author: Administrator
-"""
 import numpy as np
 
 class Driver(BaseDriver):

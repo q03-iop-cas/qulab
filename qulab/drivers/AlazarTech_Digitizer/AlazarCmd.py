@@ -1,15 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-//=============================================================================
-// Description:
-//
-//      Alazar Set/Get commands file
-//
-// Revision History:
-//		Ver 6.1 - 2013/01/14
-//
-//=============================================================================
-"""
 
 class MemorySizesPerChannel:
     MEM8K=0
@@ -32,7 +21,6 @@ class MemorySizesPerChannel:
     MEM4G=17
     MEM8G=18
     MEM16G=19
-
 
 # *****************************************************************************
 #
@@ -125,20 +113,20 @@ OPTION_VARIABLE_RATE_10MHZ_PLL=	(1 << 7)
 # The transfer offset is defined as the place to start
 # the transfer relative to trigger. The value is signed.
 # -------TO>>>T>>>>>>>>>TE------------
-TRANSFER_OFFET				=	0x10000030 
+TRANSFER_OFFET				=	0x10000030
 TRANSFER_LENGTH				=	0x10000031 # TO -> TE
-										
-# Transfer related constants			
+
+# Transfer related constants
 TRANSFER_RECORD_OFFSET		=	0x10000032
 TRANSFER_NUM_OF_RECORDS		=	0x10000033
 TRANSFER_MAPPING_RATIO		=	0x10000034
-										
+
 # only gets
 TRIGGER_ADDRESS_AND_TIMESTAMP=	0x10000035
 
 # MASTER/SLAVE CONTROL sets/gets
 MASTER_SLAVE_INDEPENDENT	=	0x10000036
-									
+
 # boolean gets
 TRIGGERED				=		0x10000040
 BUSY						=	0x10000041
@@ -200,7 +188,7 @@ SAMPLE_RATE_USER_DEF	=0x00000040
 # The base value can be used to create a PLL frequency
 # in a simple manner.
 #
-# Ex. 
+# Ex.
 #        105 MHz = PLL_10MHZ_REF_100MSPS_BASE + 5000000
 #        120 MHz = PLL_10MHZ_REF_100MSPS_BASE + 20000000
 PLL_10MHZ_REF_100MSPS_BASE=	0x05F5E100
@@ -366,7 +354,7 @@ SW_EVENTS_ON		=	0x00000001
 TIMESTAMP_RESET_FIRSTTIME_ONLY=	0x00000000
 TIMESTAMP_RESET_ALWAYS		=	0x00000001
 
-# DAC Names used by API AlazarDACSettingAdjust 
+# DAC Names used by API AlazarDACSettingAdjust
 #
 # DAC Names Specific to the ATS460
 #
@@ -423,8 +411,8 @@ CSO_DUMMY_CLOCK_EXT_TRIGGER=	2
 CSO_DUMMY_CLOCK_TIMER_ON_TIMER_OFF=	3
 
 #
-# Auxilary IO 
-# 
+# Auxilary IO
+#
 AUX_OUT_TRIGGER			=		0
 AUX_OUT_PACER				=	2
 AUX_OUT_BUSY				=	4
@@ -447,11 +435,11 @@ AUX_IN_SERIAL_DATA			=	15
 AUX_INPUT_AUXILIARY		=		AUX_IN_AUXILIARY
 AUX_INPUT_SERIAL_DATA		=	AUX_IN_SERIAL_DATA
 
-# AlazarSetExternalTriggerOperationForScanning 
+# AlazarSetExternalTriggerOperationForScanning
 
 STOS_OPTION_DEFER_START_CAPTURE=	1
 
-# Data skipping 
+# Data skipping
 
 SSM_DISABLE	=	0
 SSM_ENABLE		=1
@@ -468,4 +456,3 @@ CPF_OPTION_DMA_DOWNLOAD	=	1
 CPF_DEVICE_UNKNOWN	=	0
 CPF_DEVICE_EP3SL50	=	1
 CPF_DEVICE_EP3SE260=		2
-
