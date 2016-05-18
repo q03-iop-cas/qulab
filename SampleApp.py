@@ -11,7 +11,11 @@ def get_probility(x, N, a=0.05):
 
     返回事件 A 发生概率 P 的最概然取值、期望、以及其置信区间
     '''
-    return x/N, (x+0.1)/(N+0.2), (beta.ppf(0.5*a,x+1,N-x+1), beta.ppf(1-0.5*a,x+1,N-x+1))
+    P = x/N
+    E = (x+1.0)/(N+2.0)
+    std = np.sqrt(E*(1-E)/(N+3))
+    low, high = beta.ppf(0.5*a,x+1,N-x+1), beta.ppf(1-0.5*a,x+1,N-x+1)
+    return P, E, std, (low, high)
 
 class SubsubApp(Application):
     __title__ = 'One Point'
@@ -20,8 +24,12 @@ class SubsubApp(Application):
     def discription(self):
         pass
 
-    def measurement(self):
+    def plots(self):
         pass
+
+    def measurement(self):
+        P, _, _, (down_bond, up_bond) = get_probility(x, N)
+        return P, down_bond, up_bond
 
 class SubApp(Application):
     __title__ = 'Line'

@@ -2,8 +2,8 @@
 
 import ctypes, os
 from ctypes import (c_int8, c_uint8, c_int16, c_uint16, c_int64, c_uint64,
-                    c_char_p, c_void_p, c_long, c_ulong, c_int, c_uint, c_float,
-                    byref, Structure, POINTER)
+                    c_char_p, c_wchar_p, c_void_p, c_long, c_ulong,
+                    c_int, c_uint, c_float, byref, Structure, POINTER)
 
 c_long_p  = POINTER(c_long)
 c_ulong_p = POINTER(c_ulong)
@@ -15,7 +15,7 @@ except:
     # if failure, try to open in driver folder
     sPath = os.path.dirname(os.path.abspath(__file__))
     DLL = ctypes.CDLL(os.path.join(sPath, 'ATSApi32'))
-    
+
 #******************************************
 # *      Windows Type Definitions
 # ******************************************/
@@ -31,7 +31,7 @@ HANDLE    = c_void_p
 RETURN_CODE = c_int
 
 # BoardTypes
-    
+
 ATS_NONE = 0
 ATS850   = 1
 ATS310   = 2
@@ -86,7 +86,7 @@ class BoardDef(Structure):
     ("TrigEngSlope2", U32),
     ("TrigEngLevel2", U32)
     ]
-    
+
 pBoardDef = POINTER(BoardDef)
 
 # Constants to be used in the Application when dealing with Custom FPGAs
@@ -102,7 +102,7 @@ def __get_Func(funcname, restype=None, argtypes=None):
     if argtypes !=None:
         func.argtypes = argtypes
     return func
-    
+
 #RETURN_CODE AlazarGetOEMFPGAName(int opcodeID, char *FullPath, unsigned long *error);
 AlazarGetOEMFPGAName = __get_Func("AlazarGetOEMFPGAName", RETURN_CODE, [c_int, c_char_p, c_ulong_p])
 #RETURN_CODE AlazarOEMSetWorkingDirectory(char *wDir, unsigned long *error);
@@ -117,7 +117,7 @@ AlazarOEMDownLoadFPGA = __get_Func("AlazarOEMDownLoadFPGA", RETURN_CODE, [HANDLE
 AlazarDownLoadFPGA = __get_Func("AlazarDownLoadFPGA", RETURN_CODE, [HANDLE, c_char_p, PU32])
 
 # ********************************************************************
-# Header Constants and Structures that need to be used 
+# Header Constants and Structures that need to be used
 # when dealing with ADMA captures that use the header.
 # ********************************************************************
 ADMA_CLOCKSOURCE       = 0x00000001
@@ -186,7 +186,9 @@ PALAZAR_HEADER = POINTER(ALAZAR_HEADER)
 
 
 # AUTODMA_STATUS:
-    
+AUTODMA_STATUS = c_int
+P_AUTODMA_STATUS = c_int_p
+
 ADMA_Completed = 0
 ADMA_Buffer1Invalid = 1
 ADMA_Buffer2Invalid = 2
@@ -209,6 +211,7 @@ ADMA_Success = ADMA_Completed
 #
 # Global API Functions
 # MSILS:
+MSILS = c_int
 KINDEPENDENT = 0
 KSLAVE = 1
 KMASTER = 2
@@ -232,7 +235,7 @@ AlazarOpen = __get_Func("AlazarOpen", HANDLE, [c_char_p])
 #void        AlazarClose( HANDLE h);
 AlazarClose = __get_Func("AlazarClose", None, [HANDLE])
 #MSILS       AlazarGetBoardKind( HANDLE h);
-AlazarGetBoardKind = __get_Func("AlazarGetBoardKind", c_int, [HANDLE])
+AlazarGetBoardKind = __get_Func("AlazarGetBoardKind", MSILS, [HANDLE])
 #RETURN_CODE AlazarGetCPLDVersion( HANDLE h,U8 *Major,U8 *Minor);
 AlazarGetCPLDVersion = __get_Func("AlazarGetCPLDVersion", RETURN_CODE, [HANDLE, PU8, PU8])
 #RETURN_CODE AlazarGetChannelInfo( HANDLE h, U32 *MemSize, U8 *SampleSize);
@@ -283,7 +286,7 @@ AlazarCaptureMode = __get_Func("AlazarCaptureMode", RETURN_CODE, [HANDLE, U32])
 
 # ****************************************************************************************
 # OEM API Functions
-#RETURN_CODE AlazarStreamCapture( 
+#RETURN_CODE AlazarStreamCapture(
 #								HANDLE		h,
 #								void 		*Buffer,
 #								U32			BufferSize,
@@ -427,116 +430,134 @@ ADMA_INTERLEAVE_SAMPLES    = 0x00001000
 ADMA_GET_PROCESSED_DATA    = 0x00002000
 
 #RETURN_CODE  AlazarStartAutoDMA(HANDLE h, void* Buffer1, U32 UseHeader, U32 ChannelSelect, long TransferOffset, U32 TransferLength, long RecordsPerBuffer, long RecordCount, AUTODMA_STATUS* error, U32 r1, U32 r2, U32 *r3, U32 *r4);
-
+AlazarStartAutoDMA = __get_Func("AlazarStartAutoDMA", RETURN_CODE, [HANDLE, c_void_p, U32, U32, c_long, U32, c_long, c_long, P_AUTODMA_STATUS, U32, U32, PU32, PU32])
 #RETURN_CODE  AlazarGetNextAutoDMABuffer( HANDLE h, void* Buffer1, void* Buffer2, long* WhichOne, long* RecordsTransfered, AUTODMA_STATUS* error, U32 r1, U32 r2, long *TriggersOccurred, U32 *r4);
-
+AlazarGetNextAutoDMABuffer = __get_Func("AlazarGetNextAutoDMABuffer", RETURN_CODE, [HANDLE, c_void_p, c_void_p, c_long_p, c_long_p, P_AUTODMA_STATUS, U32, U32, c_long_p, PU32])
 #RETURN_CODE  AlazarGetNextBuffer( HANDLE h, void* Buffer1, void* Buffer2, long* WhichOne, long* RecordsTransfered, AUTODMA_STATUS* error, U32 r1, U32 r2, long *TriggersOccurred, U32 *r4);
-
+AlazarGetNextBuffer = __get_Func("AlazarGetNextBuffer", RETURN_CODE, [HANDLE, c_void_p, c_void_p, c_long_p, c_long_p, P_AUTODMA_STATUS, U32, U32, c_long_p, PU32])
 #RETURN_CODE  AlazarCloseAUTODma(HANDLE h);
-
+AlazarCloseAUTODma = __get_Func("AlazarCloseAUTODma", RETURN_CODE, [HANDLE])
 #RETURN_CODE  AlazarAbortAutoDMA(HANDLE h, void* Buffer, AUTODMA_STATUS* error, U32 r1, U32 r2, U32 *r3, U32 *r4);
-
+AlazarAbortAutoDMA = __get_Func("AlazarAbortAutoDMA", RETURN_CODE, [HANDLE, c_void_p, P_AUTODMA_STATUS, U32, U32, PU32, PU32])
 #U32  AlazarGetAutoDMAHeaderValue(HANDLE h, U32 Channel, void* DataBuffer, U32 Record, U32 Parameter, AUTODMA_STATUS *error);
-
+AlazarGetAutoDMAHeaderValue = __get_Func("AlazarGetAutoDMAHeaderValue", U32, [HANDLE, U32, c_void_p, U32, U32, P_AUTODMA_STATUS])
 #float  AlazarGetAutoDMAHeaderTimeStamp(HANDLE h, U32 Channel, void* DataBuffer, U32 Record, AUTODMA_STATUS *error);
-
+AlazarGetAutoDMAHeaderTimeStamp = __get_Func("AlazarGetAutoDMAHeaderTimeStamp", c_float, [HANDLE, U32, c_void_p, U32, P_AUTODMA_STATUS])
 #void  *AlazarGetAutoDMAPtr(HANDLE h, U32 DataOrHeader, U32 Channel, void* DataBuffer, U32 Record, AUTODMA_STATUS *error);
-
+AlazarGetAutoDMAPtr = __get_Func("AlazarGetAutoDMAPtr", c_void_p, [HANDLE, U32, U32, c_void_p, U32, P_AUTODMA_STATUS])
 #U32  AlazarWaitForBufferReady(HANDLE h, long tms);
-
+AlazarWaitForBufferReady = __get_Func("AlazarWaitForBufferReady", U32, [HANDLE, c_long])
 #RETURN_CODE  AlazarEvents(HANDLE h, U32 enable);
-
-#RETURN_CODE 
+AlazarEvents = __get_Func("AlazarEvents", RETURN_CODE, [HANDLE, U32])
+#RETURN_CODE
 #AlazarBeforeAsyncRead (
-#	HANDLE	hBoa rd, 
-#	U32		uChannelSelect, 
-#	long	lTransferOffset, 
-#	U32		uSamplesPerRecord, 
-#	U32		uRecordsPerBuffer, 
-#	U32		uRecordsPerAcquisition, 
+#	HANDLE	hBoard,
+#	U32		uChannelSelect,
+#	long	lTransferOffset,
+#	U32		uSamplesPerRecord,
+#	U32		uRecordsPerBuffer,
+#	U32		uRecordsPerAcquisition,
 #	U32		uFlags
 #	);
-
+AlazarBeforeAsyncRead = __get_Func("AlazarBeforeAsyncRead", RETURN_CODE, [HANDLE, U32, c_long, U32, U32, U32, U32])
 #include "windows.h"
-#RETURN_CODE 
-#AlazarAsyncRead ( 
-#	HANDLE	    hBoard, 
-#	void       *pBuffer, 
+#typedef struct _OVERLAPPED {
+#　　DWORD Internal;
+#　　DWORD InternalHigh;
+#　　DWORD Offset;
+#　　DWORD OffsetHigh;
+#　　HANDLE hEvent;
+#　　} OVERLAPPED
+class OVERLAPPED(Structure):
+    _fields_ = [
+    ("Internal", c_ulong),
+    ("InternalHigh", c_ulong),
+    ("Offset", c_ulong),
+    ("OffsetHigh", c_ulong),
+    ("hEvent", HANDLE)
+    ]
+P_OVERLAPPED = POINTER(OVERLAPPED)
+
+#RETURN_CODE
+#AlazarAsyncRead (
+#	HANDLE	    hBoard,
+#	void       *pBuffer,
 #	U32		    BytesToRead,
 #	OVERLAPPED *pOverlapped
 #	);
+AlazarAsyncRead = __get_Func("AlazarAsyncRead", RETURN_CODE, [HANDLE, c_void_p, U32, P_OVERLAPPED])
 
-
-#RETURN_CODE 
+#RETURN_CODE
 #AlazarAbortAsyncRead (
 #	HANDLE	 hBoard
 #	);
+AlazarAbortAsyncRead = __get_Func("AlazarAbortAsyncRead", RETURN_CODE, [HANDLE])
 
-
-#RETURN_CODE 
+#RETURN_CODE
 #AlazarPostAsyncBuffer (
 #	HANDLE  hDevice,
-#	void   *pBuffer, 
+#	void   *pBuffer,
 #	U32     uBufferLength_bytes
 #	);
+AlazarPostAsyncBuffer = __get_Func("AlazarPostAsyncBuffer", RETURN_CODE, [HANDLE, c_void_p, U32])
 
-
-#RETURN_CODE 
+#RETURN_CODE
 #AlazarWaitAsyncBufferComplete (
 #	HANDLE  hDevice,
-#	void   *pBuffer, 
+#	void   *pBuffer,
 #	U32     uTimeout_ms
 #	);
-
+AlazarWaitAsyncBufferComplete = __get_Func("AlazarWaitAsyncBufferComplete", RETURN_CODE, [HANDLE, c_void_p, U32])
 
 #RETURN_CODE
 #AlazarWaitNextAsyncBufferComplete (
 #	HANDLE  hDevice,
-#	void   *pBuffer, 
+#	void   *pBuffer,
 #	U32     uBufferLength_bytes,
 #	U32     uTimeout_ms
 #	);
-
+AlazarWaitNextAsyncBufferComplete = __get_Func("AlazarWaitNextAsyncBufferComplete", RETURN_CODE, [HANDLE, c_void_p, U32, U32])
 
 #RETURN_CODE
 #AlazarCreateStreamFileA (
-#	HANDLE hDevice, 
+#	HANDLE hDevice,
 #	const char *pszFilePath
 #	);
-
+AlazarCreateStreamFileA = __get_Func("AlazarCreateStreamFileA", RETURN_CODE, [HANDLE, c_char_p])
 
 #RETURN_CODE
 #AlazarCreateStreamFileW (
-#	HANDLE hDevice, 
+#	HANDLE hDevice,
 #	const WCHAR *pszFilePath
 #	);
+AlazarCreateStreamFileW = __get_Func("AlazarCreateStreamFileW", RETURN_CODE, [HANDLE, c_wchar_p])
 
-
-#ifdef UNICODE 
+#ifdef UNICODE
 #define AlazarCreateStreamFile AlazarCreateStreamFileW
 #else
 #define AlazarCreateStreamFile AlazarCreateStreamFileA
 #endif
-
+AlazarCreateStreamFile = AlazarCreateStreamFileW
 
 #long AlazarFlushAutoDMA(HANDLE h);
+AlazarFlushAutoDMA = __get_Func("AlazarFlushAutoDMA", c_long, [HANDLE])
 #void AlazarStopAutoDMA(HANDLE h);
-
+AlazarStopAutoDMA = __get_Func("AlazarStopAutoDMA", None, [HANDLE])
 
 # TimeStamp Control Api
 #RETURN_CODE AlazarResetTimeStamp(HANDLE h, U32 resetFlag);
-
+AlazarResetTimeStamp = __get_Func("AlazarResetTimeStamp", RETURN_CODE, [HANDLE, U32])
 
 #RETURN_CODE AlazarReadRegister(HANDLE hDevice,U32 offset,U32 *retVal, U32 pswrd);
-
+AlazarReadRegister = __get_Func("AlazarReadRegister", RETURN_CODE, [HANDLE, U32, PU32, U32])
 #RETURN_CODE AlazarWriteRegister(HANDLE hDevice,U32 offset,U32 Val, U32 pswrd);
-
+AlazarWriteRegister = __get_Func("AlazarWriteRegister", RETURN_CODE, [HANDLE, U32, U32, U32])
 
 #
 # DAC CONTROL API
 #RETURN_CODE AlazarDACSetting
 #(HANDLE h, U32 SetGet, U32 OriginalOrModified, U8 Channel, U32 DACNAME, U32 Coupling, U32 InputRange, U32 Impedance, U32 *getVal, U32 setVal, U32 *error);
-
+AlazarDACSetting = __get_Func("AlazarDACSetting", RETURN_CODE, [HANDLE, U32, U32, U8, U32, U32, U32, U32, PU32, U32, PU32])
 
 #RETURN_CODE
 #AlazarConfigureAuxIO (
@@ -544,63 +565,63 @@ ADMA_GET_PROCESSED_DATA    = 0x00002000
 #	U32			uMode,
 #	U32			uParameter
 #	);
-
+AlazarConfigureAuxIO = __get_Func("AlazarConfigureAuxIO", RETURN_CODE, [HANDLE, U32, U32])
 
 # Convert RETURN_CODE to text
-#const char * 
+#const char *
 #AlazarErrorToText(
 #	RETURN_CODE code
 #	);
+AlazarErrorToText = __get_Func("AlazarErrorToText", c_char_p, [RETURN_CODE])
 
-	
 # sample skipping
 
 #RETURN_CODE
 #AlazarConfigureSampleSkipping (
-#	HANDLE  hBoard, 
+#	HANDLE  hBoard,
 #	U32		uMode,
 #	U32     uSampleClocksPerRecord,
 #	U16    *pwClockSkipMask
 #	);
+AlazarConfigureSampleSkipping = __get_Func("AlazarConfigureSampleSkipping", RETURN_CODE, [HANDLE, U32, U32, U16])
 
-	
 # coporocessor API
 
 #RETURN_CODE	AlazarCoprocessorRegisterRead (HANDLE hDevice, U32 offset, U32 *pValue);
-
+AlazarCoprocessorRegisterRead = __get_Func("AlazarCoprocessorRegisterRead", RETURN_CODE, [HANDLE, U32, PU32])
 #RETURN_CODE AlazarCoprocessorRegisterWrite (HANDLE hDevice, U32 offset, U32 value);
-
+AlazarCoprocessorRegisterWrite = __get_Func("AlazarCoprocessorRegisterWrite", RETURN_CODE, [HANDLE, U32, U32])
 #RETURN_CODE AlazarCoprocessorDownloadA (HANDLE hBoard, char *pszFileName, U32 uOptions);
-
+AlazarCoprocessorDownloadA = __get_Func("AlazarCoprocessorDownloadA", RETURN_CODE, [HANDLE, c_char_p, U32])
 #RETURN_CODE AlazarCoprocessorDownloadW (HANDLE hBoard, WCHAR *pszFileName, U32 uOptions);
-
+AlazarCoprocessorDownloadW = __get_Func("AlazarCoprocessorDownloadW", RETURN_CODE, [HANDLE, c_wchar_p, U32])
 #ifdef UNICODE
 #define AlazarCoprocessorDownload AlazarCoprocessorDownloadW
 #else
 #define AlazarCoprocessorDownload AlazarCoprocessorDownloadA
 #endif
-
+AlazarCoprocessorDownload = AlazarCoprocessorDownloadW
 # board revision
 
-#RETURN_CODE 
+#RETURN_CODE
 #AlazarGetBoardRevision(
-#	HANDLE hBoard, 
-#	U8 *Major, 
+#	HANDLE hBoard,
+#	U8 *Major,
 #	U8 *Minor
 #	);
-
+AlazarGetBoardRevision = __get_Func("AlazarGetBoardRevision", RETURN_CODE, [HANDLE, PU8, PU8])
 
 # FPGA averaging
 
-#RETURN_CODE 
+#RETURN_CODE
 #AlazarConfigureRecordAverage(
-#	HANDLE hBoard, 
+#	HANDLE hBoard,
 #	U32 uMode,
 #	U32 uSamplesPerRecord,
 #	U32 uRecordsPerAverage,
 #	U32 uOptions
 #	);
-
+AlazarConfigureRecordAverage = __get_Func("AlazarConfigureRecordAverage", RETURN_CODE, [HANDLE, U32, U32, U32, U32])
 
 CRA_MODE_DISABLE         = 0
 CRA_MODE_ENABLE_FPGA_AVE = 1
@@ -610,29 +631,30 @@ CRA_OPTION_SIGNED        = (1 << 1)
 
 # Memory allocation
 
-#U8* 
+#U8*
 #AlazarAllocBufferU8 (
-#	HANDLE hBoard, 
+#	HANDLE hBoard,
 #	U32 uSampleCount
 #	);
+AlazarAllocBufferU8 = __get_Func("AlazarAllocBufferU8", PU8, [HANDLE, U32])
 
-	
-#RETURN_CODE 
+#RETURN_CODE
 #AlazarFreeBufferU8 (
-#	HANDLE hBoard, 
+#	HANDLE hBoard,
 #	U8 *pBuffer
 #	);
+AlazarFreeBufferU8 = __get_Func("AlazarFreeBufferU8", RETURN_CODE, [HANDLE, PU8])
 
-
-#U16* 
+#U16*
 #AlazarAllocBufferU16 (
-#	HANDLE hBoard, 
+#	HANDLE hBoard,
 #	U32 uSampleCount
 #	);
+AlazarAllocBufferU16 = __get_Func("AlazarAllocBufferU16", PU16, [HANDLE, U32])
 
-	
-#RETURN_CODE 
+#RETURN_CODE
 #AlazarFreeBufferU16 (
-#	HANDLE hBoard, 
+#	HANDLE hBoard,
 #	U16 *pBuffer
 #	);
+AlazarFreeBufferU16 = __get_Func("AlazarFreeBufferU16", RETURN_CODE, [HANDLE, PU16])

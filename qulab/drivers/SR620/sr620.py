@@ -5,17 +5,13 @@ Created on Sat Dec 21 00:01:19 2013
 @author: feihoo87
 """
 import struct
-from pyvisa import vpp43
-from pyvisa.visa import VisaIOWarning
-
-from .error import DriverError
-from .base import CounterDriver
+from visa import VisaIOWarning
 
 def convert(data, mode, expd):
     """将读取出的二进制数据块转换成列表
-    
+
     根据说明书第53页中的 C 语音代码改写而成。
-    
+
     data : 读出的原始二进制数据块以16位整形数排列而成的列表
     mode : 通过向 SR620 发送 'MODE?' 命令获取
     expd : 通过向 SR620 发送 'EXPD?' 命令获取
@@ -39,56 +35,43 @@ def convert(data, mode, expd):
         ret.append(v)
     return ret
 
-class sr620(CounterDriver):
-    """SR620的驱动"""
-    def __init__(self, ins, *args, **kwargs):
-        """
-        ins : 设备对象
-        """
-        super(sr620, self).__init__(ins, *args, **kwargs)
-        self.ins = ins
-        
-    def __read(self, size):
-        """从设备读取 size 个字节"""
+class Driver(BaseDriver):
+    error_command = ''
+    surport_models = ['SR620']
+
+    def performGetValue(self, quant, **kw):
+        if quant.name == 'DATAS':
+            if 'count' in kw.keys():
+                count = kw['count']
+            else:
+                count = 100
+            return self.get_Datas(count)
+        else:
+            return super(Driver, self).performGetValue(quant, **kw)
+
+    def get_Datas(self, count=100):
+        block = ''
+        max = 5000
+        loop = int(count/max)
+        last = count % max
+        self.write('*CLS')
         try:
-            buff = vpp43.read(self.ins.vi, size)
+            if last < count:
+                for i in range(loop):
+                    self.write('BDMP %d' % max)
+                    block += self.__read(8*max)
+            self.write('BDMP %d' % last)
+            block += self.__read(8*last)
+        except:
+            raise
+        mode = int(self.query('MODE?'))
+        expd = int(self.query('EXPD?'))
+        self.write('AUTM 1')
+        return convert(list(struct.unpack('%dH' % 4*count, block)), mode, expd)
+
+    def __read(self, size):
+        try:
+            buff = self.ins.visalib.read(self.ins.session, size)
         except VisaIOWarning:
             pass
         return buff
-
-    def dump(self, n):
-        """用快速模式从仪器上读取n个数"""
-        block = ''
-        max = 5000
-
-        loop = n / max
-        last = n % max
-        
-        self.exec_("*CLS")
-        try:
-            if last < n:
-                for i in range(loop):
-                    self.exec_("BDMP %d" % max)
-                    block += self.__read(8*max)
-            self.exec_("BDMP %d" % last)
-            block += self.__read(8*last)
-        except:
-            #raise DriverError(self.ins, code=1, msg="SR620 Dump Error")
-            raise
-        tmp = list(struct.unpack("%dH" % 4*n, block))
-        mode = int(self.ask('MODE?'))
-        expd = int(self.ask('EXPD?'))
-        self.ins.write("AUTM 1")
-        return convert(tmp, mode, expd)
-        
-    def set_level(self, v):
-        pass
-    
-    def set_mode(self, mode):
-        pass
-    
-    def errors(self):
-        """返回错误列表"""
-        e = []
-        return e
-    
