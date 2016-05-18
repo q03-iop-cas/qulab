@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
 from qulab import Application
 from qulab.utils import get_probility
-
+import numpy as np
 
 class SubsubApp(Application):
     __title__ = 'One Point'
     __version__ = 'v0.1'
 
     def discription(self):
-        pass
+        self.ins = {
+            'Counter' : 'GPIB1:13',
+        }
 
     def plots(self):
         pass
 
     def measurement(self):
+        data = np.array(self.ins['Counter'].getValue('Datas'))
         P, _, _, (down_bond, up_bond) = get_probility(x, N)
         return P, down_bond, up_bond
 
