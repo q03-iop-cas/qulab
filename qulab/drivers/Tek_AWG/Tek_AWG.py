@@ -5,19 +5,19 @@ class Driver(BaseDriver):
     surport_models = ['AWG5014C']
 
     quants = [
-        Q('Vpp', unit='V',
+        Q('Vpp', unit='V', type=DOUBLE,
           set_cmd='SOURCE%(channel)d:VOLT %(value)f',
           get_cmd='SOURCE%(channel)d:VOLT?'),
 
-        Q('Offset', unit='V',
+        Q('Offset', unit='V', type=DOUBLE,
           set_cmd='SOURCE%(channel)d:VOLT:OFFS %(value)f',
           get_cmd='SOURCE%(channel)d:VOLT:OFFS?'),
 
-        Q('Volt Low', unit='V',
+        Q('Volt Low', unit='V', type=DOUBLE,
           set_cmd='SOURCE%(channel)d:VOLT:LOW %(value)f',
           get_cmd='SOURCE%(channel)d:VOLT:LOW?'),
 
-        Q('Volt High', unit='V',
+        Q('Volt High', unit='V', type=DOUBLE,
           set_cmd='SOURCE%(channel)d:VOLT:HIGH %(value)f',
           get_cmd='SOURCE%(channel)d:VOLT:HIGH?')
     ]
