@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import visa
+from qulab.driver import load_driver
 
 ats_addr = re.compile(r'^(ATS9626|ATS9850|ATS9870)::SYST([0-9]*)::([0-9]*)(|::INSTR)$')
 
@@ -51,8 +52,18 @@ class InstServer():
             if mode in driver_cls.surport_modes:
                 return driver_cls
 
+    def _get_driver_paths(self):
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'drivers')
+        driver_paths = [path]
+        return driver_paths
+
     def _load_drivers(self):
-        pass
+        driver_paths = self._get_driver_paths()
+        for p in driver_paths:
+            l = os.listdir(p)
+            for n in l:
+                DriverClass = load_driver(os.path.join(p,n,n+'.py'))
+                self._driver_clss.append(DriverClass)
 
     def start(self):
         pass
