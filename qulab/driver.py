@@ -221,8 +221,9 @@ def load_driver(fname):
         'OPTION'     : QuantTypes.OPTION,
         'BOOL'       : QuantTypes.BOOL,
     }
+    loc = dict()
 
     with open(fname,'r') as f:
-        exec(f.read(), globals=glb)
-        return glb['Driver']
+        exec(f.read(), glb, loc)
+        return loc['Driver']
     return None
