@@ -37,9 +37,9 @@ class Driver(BaseDriver):
                     a, b = self.wrapper.get_Traces(samplesPerRecord, max, timeout)
                     ChA.extend(a)
                     ChB.extend(b)
-                a, b = self.wrapper.get_Traces(samplesPerRecord, last, timeout)
-                ChA.extend(a)
-                ChB.extend(b)
+            a, b = self.wrapper.get_Traces(samplesPerRecord, last, timeout)
+            ChA.extend(a)
+            ChB.extend(b)
         except:
             raise
         return ChA, ChB
