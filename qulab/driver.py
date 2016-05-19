@@ -4,6 +4,7 @@ import logging
 import string
 import copy
 import os
+import sys
 import re
 import visa
 
@@ -69,10 +70,12 @@ class BaseDriver():
     surport_models = []
     quants = []
 
-    def __init__(self, ins, addr, model, timeout=3, **kw):
+    def __init__(self, ins=None, addr=None, model=None, timeout=3, **kw):
         self.addr = addr
         self.ins = ins
-        self.ins.timeout = timeout*1000
+        self.timeout = timeout
+        if self.ins is not None:
+            self.ins.timeout = timeout*1000
         self.quantities = {}
         self.model = model
 
@@ -87,7 +90,9 @@ class BaseDriver():
         pass
 
     def set_timeout(self, t):
-        self.ins.timeout = t*1000
+        self.timeout = t
+        if self.ins is not None:
+            self.ins.timeout = t*1000
 
     def errors(self):
         """返回错误列表"""
@@ -194,7 +199,13 @@ def load_driver(fname):
     }
 
     with open(fname,'r') as f:
-        exec(f.read(), glb)
+        path = os.path.dirname(os.path.abspath(fname))
+        if path in sys.path:
+            exec(f.read(), glb)
+        else:
+            sys.path.append(path)
+            exec(f.read(), glb)
+            sys.path.remove(path)
         return glb['Driver']
     return None
 

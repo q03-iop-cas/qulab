@@ -1,4 +1,5 @@
 import numpy as np
+from AlazarTech_Wrapper import Wrapper
 
 class Driver(BaseDriver):
     surport_models = ['ATS9870']
@@ -7,7 +8,7 @@ class Driver(BaseDriver):
         super(Driver, self).__init__(**kw)
         self.systemID = kw['systemID']
         self.boardID  = kw['boardID']
-        self.wrapper = Wrapper(self.systemId, self.boardId)
+        self.wrapper = Wrapper(self.systemID, self.boardID)
 
     def performSetValue(self, quant, value, **kw):
         pass

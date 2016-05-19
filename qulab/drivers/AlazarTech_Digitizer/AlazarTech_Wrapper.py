@@ -31,7 +31,7 @@ class Wrapper():
         return status
 
     def AlazarGetChannelInfo(self):
-        MemorySizeInSamples, BitsPerSample = U32(), U8()
+        MemorySizeInSamples, BitsPerSample = API.U32(), API.U8()
         self.callFunc('AlazarGetChannelInfo', self.handle, MemorySizeInSamples, BitsPerSample)
         return MemorySizeInSamples.value, BitsPerSample.value
 
