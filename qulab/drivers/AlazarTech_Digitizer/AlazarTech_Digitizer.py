@@ -5,7 +5,7 @@ class Driver(BaseDriver):
     surport_models = ['ATS9870']
 
     def __init__(self, **kw):
-        super(Driver, self).__init__(**kw)
+        BaseDriver.__init__(self, **kw)
         self.systemID = kw['systemID']
         self.boardID  = kw['boardID']
         self.wrapper = Wrapper(self.systemID, self.boardID)
