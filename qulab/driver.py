@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 from qulab.quantity import Quantity, QuantTypes
-import logging, string, copy, os, re
+import logging
+import string
+import copy
+import os
+import re
 import visa
 
 logger = logging.getLogger("drivers")
@@ -209,6 +213,7 @@ class InstrumentManager():
         self.instr = {}
         self.rm = visa.ResourceManager()
         self._driver_clss = []
+        self._load_drivers()
 
     def __getitem__(self, name):
         if name in self.instr.keys():
