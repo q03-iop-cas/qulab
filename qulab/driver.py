@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 from qulab.quantity import Quantity, QuantTypes
-import logging, string, copy
+import logging, string, copy, os, re
+import visa
 
 logger = logging.getLogger("drivers")
 logger.setLevel(logging.DEBUG)
@@ -57,41 +59,6 @@ class InstrumentQuantity(Quantity):
         if self.driver is not None and self.get_cmd is not None:
             self.value = self.driver.query(self.get_cmd.format(**kw))
         return self.value
-
-import functools
-import inspect
-
-def with_log_and_error_check(logger, is_query=False, check_errors=False):
-    def decorator(method):
-        @functools.wraps(method)
-        def wrapper(self, **kwargs):
-            argspec = inspect.getargspec(method)
-            args = argspec.args
-            defaults = () if argspec.defaults is None else argspec.defaults
-            kw = {} if argspec.keywords is None else argspec.keywords
-            for i in range(len(defaults)):
-                kw[args[i+len(args)-len(defaults)]] = defaults[i]
-            for name in args:
-                if name == "self":
-                    continue
-                if name in kwargs.keys():
-                    kw[name] = kwargs[name]
-            log_msg = kw['message']
-            logger.debug("%s << %s", str(self.ins), log_msg)
-            try:
-                ret = method(self, **kw)
-            except:
-                logger.exception("%s << %s", str(self.ins), log_msg)
-                raise
-            if isinstance(ret, str):
-                logger.debug("%s >> %s", str(self.ins), ret)
-            elif is_query:
-                logger.debug("%s >> <%d RESULTS>", str(self.ins), len(ret))
-            if check_errors:
-                self.check_errors_and_log(log_msg)
-            return ret
-        return wrapper
-    return decorator
 
 class BaseDriver():
     error_command = 'SYST:ERR?'
@@ -226,3 +193,67 @@ def load_driver(fname):
         exec(f.read(), glb)
         return glb['Driver']
     return None
+
+ats_addr = re.compile(r'^(ATS9626|ATS9850|ATS9870)::SYSTEM([0-9]*)::([0-9]*)(|::INSTR)$')
+
+def open_visa_resource(rm, addr):
+    ins = rm.open_resource(addr)
+    IDN = ins.query("*IDN?").split(',')
+    company = IDN[0].strip()
+    model   = IDN[1].strip()
+    version = IDN[3].strip()
+    return dict(ins=ins, company=company, model=model, version=version, addr=addr)
+
+class InstrumentManager():
+    def __init__(self):
+        self.instr = {}
+        self.rm = visa.ResourceManager()
+        self._driver_clss = []
+
+    def __getitem__(self, name):
+        if name in self.instr.keys():
+            return self.instr[name]
+        else:
+            return None
+
+    def add_instr(self, name, addr):
+        '''If success return True, else return False'''
+        m = ats_addr.search(addr)
+        if m is not None:
+            model = m.group(1)
+            systemID = int(m.group(2))
+            boardID = int(m.group(3))
+            info = dict(ins=None,
+                        company='AlazarTech',
+                        model=model,
+                        systemID=systemID,
+                        boardID=boardID,
+                        addr=addr)
+        else:
+            info = open_visa_resource(self.rm, addr)
+
+        DriverClass = self._get_driver_by_model(info['model'])
+        if DriverClass is None:
+            return False
+        else:
+            self.instr[name] = DriverClass(**info)
+            return True
+
+    def _get_driver_by_model(self, model):
+        for driver_cls in self._driver_clss:
+            if model in driver_cls.surport_models:
+                return driver_cls
+        return None
+
+    def _get_driver_paths(self):
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'drivers')
+        driver_paths = [path]
+        return driver_paths
+
+    def _load_drivers(self):
+        driver_paths = self._get_driver_paths()
+        for p in driver_paths:
+            l = os.listdir(p)
+            for n in l:
+                DriverClass = load_driver(os.path.join(p,n,n+'.py'))
+                self._driver_clss.append(DriverClass)

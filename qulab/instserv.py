@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+import os
 import visa
 from qulab.driver import load_driver
 
@@ -11,7 +12,7 @@ def open_visa_resource(rm, addr):
     company = IDN[0].strip()
     model   = IDN[1].strip()
     version = IDN[3].strip()
-    return dict(ins=ins, company=company, model=model, version=version)
+    return dict(ins=ins, company=company, model=model, version=version, addr=addr)
 
 class Instrument():
     def __init__(self):
@@ -40,16 +41,17 @@ class InstServer():
                         company='AlazarTech',
                         model=model,
                         systemID=systemID,
-                        boardID=boardID)
+                        boardID=boardID,
+                        addr=addr)
         else:
             info = open_visa_resource(self.rm, addr)
 
-        DriverClass = self._get_driver_by_mode(info['mode'])
+        DriverClass = self._get_driver_by_model(info['model'])
         self.instr[name] = DriverClass(**info)
 
-    def _get_driver_by_mode(self, mode):
+    def _get_driver_by_model(self, model):
         for driver_cls in self._driver_clss:
-            if mode in driver_cls.surport_modes:
+            if model in driver_cls.surport_models:
                 return driver_cls
 
     def _get_driver_paths(self):
