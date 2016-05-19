@@ -116,6 +116,8 @@ class BaseDriver():
             logger.error("%s >> %s", str(self.ins), ("%d : %s" % e))
 
     def query(self, message, check_errors=False):
+        if self.ins is None:
+            return None
         logger.debug("%s << %s", str(self.ins), message)
         try:
             res = self.ins.query(message)
@@ -127,16 +129,43 @@ class BaseDriver():
             self.check_errors_and_log(message)
         return res
 
-    def query_ascii_values(self, *args, **kw):
-        ret = self.ins.query_ascii_values(*args, **kw)
-        return ret
+    def query_ascii_values(self, message, converter='f', separator=',',
+                           container="<type 'list'>", delay=None,
+                           check_errors=False):
+        if self.ins is None:
+            return None
+        logger.debug("%s << %s", str(self.ins), message)
+        try:
+            res = self.ins.query_ascii_values(message, converter, separator, container, delay)
+        except:
+            logger.exception("%s << %s", str(self.ins), message)
+            raise
+        logger.debug("%s >> <%d results>", str(self.ins), len(res))
+        if check_errors:
+            self.check_errors_and_log(message)
+        return res
 
-    def query_binary_values(self, *args, **kw):
-        ret = self.ins.query_binary_values(*args, **kw)
-        return ret
+    def query_binary_values(self, message, datatype='f', is_big_endian=False,
+                            container="<type 'list'>", delay=None,
+                            header_fmt='ieee', check_errors=False):
+        if self.ins is None:
+            return None
+        logger.debug("%s << %s", str(self.ins), message)
+        try:
+            res = self.ins.query_binary_values(message, datatype, is_big_endian,
+                                               container, delay, header_fmt)
+        except:
+            logger.exception("%s << %s", str(self.ins), message)
+            raise
+        logger.debug("%s >> <%d results>", str(self.ins), len(res))
+        if check_errors:
+            self.check_errors_and_log(message)
+        return res
 
     def write(self, message, check_errors=False):
         """Send message to the instrument."""
+        if self.ins is None:
+            return None
         logger.debug("%s << %s", str(self.ins), message)
         try:
             ret = self.ins.write(message)
@@ -147,13 +176,27 @@ class BaseDriver():
             self.check_errors_and_log(message)
         return ret
 
-    def write_ascii_values(self, *args, **kw):
-        ret = self.ins.write_ascii_values(*args, **kw)
+    def write_ascii_values(self, message, values, converter='f', separator=',',
+                           termination=None, encoding=None, check_errors=False):
+        if self.ins is None:
+            return None
+        log_msg = message+('<%d values>'%len(values))
+        logger.debug("%s << %s", str(self.ins), log_msg)
+        try:
+            ret = self.ins.write_ascii_values(message, values, converter,
+                                              separator, termination, encoding)
+        except:
+            logger.exception("%s << %s", str(self.ins), log_msg)
+            raise
+        if check_errors:
+            self.check_errors_and_log(log_msg)
         return ret
 
     def write_binary_values(message, values,
                             datatype='f', is_big_endian=False,
                             termination=None, encoding=None, check_errors=False):
+        if self.ins is None:
+            return None
         block, header = IEEE_488_2_BinBlock(values, datatype, is_big_endian)
         log_msg = message+header+'<DATABLOCK>'
         logger.debug("%s << %s", str(self.ins), log_msg)
