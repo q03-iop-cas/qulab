@@ -41,7 +41,7 @@ class InstrumentQuantity(Quantity):
     def __init__(self, name, value=None, type=QuantTypes.DOUBLE,
                  unit=None, dimension=None,
                  set_cmd=None, get_cmd=None, options={}):
-        super(InstrumentQuantity, self).__init__(name, value, type, unit, dimension)
+        Quantity.__init__(self, name, value, type, unit, dimension)
         self.driver = None
         self.set_cmd = set_cmd
         self.get_cmd = get_cmd
@@ -191,15 +191,15 @@ class BaseDriver():
             self.check_errors_and_log(log_msg)
         return ret
 
-    def getValue(self, name):
+    def getValue(self, name, **kw):
         if name in self.quantities:
-            return self.performGetValue(self.quantities[name])
+            return self.performGetValue(self.quantities[name], **kw)
         else:
             return None
 
-    def setValue(self, name, value):
+    def setValue(self, name, value, **kw):
         if name in self.quantities:
-            self.performSetValue(self.quantities[name], value)
+            self.performSetValue(self.quantities[name], value, **kw)
 
     def performOpen(self, **kw):
         pass

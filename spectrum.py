@@ -29,4 +29,3 @@ for f in flux:
     fl_sour.setValue('Flux', f)
     freq, P, down_bond, up_bond = mw.recv()
     Lab.save([f, freq, P], header=table_header)
-Lab.send_data()

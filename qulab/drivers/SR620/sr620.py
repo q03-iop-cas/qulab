@@ -33,6 +33,9 @@ def convert(data, mode, expd):
 class Driver(BaseDriver):
     error_command = ''
     surport_models = ['SR620']
+    quants = [
+        Q('DATAS', unit='', type=VECTOR)
+    ]
 
     def performGetValue(self, quant, **kw):
         if quant.name == 'DATAS':
@@ -66,7 +69,7 @@ class Driver(BaseDriver):
 
     def __read(self, size):
         try:
-            buff = self.ins.visalib.read(self.ins.session, size)
+            buff = self.ins.visalib.read(self.ins.session, size)[0]
         except VisaIOWarning:
             pass
         return buff

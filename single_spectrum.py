@@ -26,6 +26,5 @@ table_header = '''
 
 for f in freqs:
     ex_mw.setValue('Frequency', f)
-    P, down_bond, up_bond = PI.recv()
+    P, down_bond, up_bond = PI.get('P', 'down_bond', 'up_bond')
     Lab.save([1e-9*f, P, down_bond, up_bond], header=table_header)
-Lab.send_data()
