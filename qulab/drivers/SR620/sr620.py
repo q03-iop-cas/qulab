@@ -34,18 +34,18 @@ class Driver(BaseDriver):
     error_command = ''
     surport_models = ['SR620']
     quants = [
-        Q('DATAS', unit='', type=VECTOR)
+        Q('Datas', unit='', type=VECTOR)
     ]
 
     def performGetValue(self, quant, **kw):
-        if quant.name == 'DATAS':
+        if quant.name == 'Datas':
             if 'count' in kw.keys():
                 count = kw['count']
             else:
                 count = 100
             return self.get_Datas(count)
         else:
-            return super(Driver, self).performGetValue(quant, **kw)
+            return BaseDriver.performGetValue(self, quant, **kw)
 
     def get_Datas(self, count=100):
         block = ''

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+import numpy as np
 
 class Driver(BaseDriver):
     error_command = ''
-    surport_models = ['33120A']
+    surport_models = ['33120A', '33220A']
     quants = [
         Q('Frequency', unit='Hz', type=DOUBLE,
           set_cmd='FREQ %(value).11E Hz',
@@ -12,12 +13,9 @@ class Driver(BaseDriver):
           get_cmd='VOLT?')
         Q('Offset', unit='V', type=DOUBLE,
           set_cmd='VOLT:OFFS %(value).5E V',
-          get_cmd='VOLT:OFFS?')
+          get_cmd='VOLT:OFFS?'),
+        Q('Waveform', unit='V', type=VECTOR)
     ]
-
-    max_waveform_size = 16000
-    clip = lambda self,x: (2047*x).clip(-2047,2047)
-    inner_waveform = ["SINC","NEG_RAMP","EXP_RISE","EXP_FALL","CARDIAC"]
 
     def performOpen(self):
         self.write('FORM:BORD NORM')
@@ -27,7 +25,28 @@ class Driver(BaseDriver):
             self.current_waveform = self.query('FUNC:USER?')
         self.arb_waveforms = self.query('DATA:NVOL:CAT?')[1:-1].split('","')
         self.trigger_source = self.query('TRIG:SOUR?')
-        self.trigger_count  = int(float(self.query('BM:NCYC?')))
+        self.inner_waveform = ["SINC","NEG_RAMP","EXP_RISE","EXP_FALL","CARDIAC"]
+
+        if self.model == '33120A':
+            self.max_waveform_size = 16000
+            self.clip = lambda self,x: (2047*x).clip(-2047,2047)
+            self.trigger_count  = int(float(self.query('BM:NCYC?')))
+        elif self.model == '33220A':
+            self.max_waveform_size = 16384
+            self.clip = lambda self,x: (8191*x).clip(-8191,8191)
+            self.trigger_count  = int(float(self.ask("BURS:NCYC?")))
+
+    def performSetValue(self, quant, value, **kw):
+        if quant.name == 'Waveform':
+            if len(value) > self.max_waveform_size:
+                value = value[:self.max_waveform_size]
+            value = np.array(value)
+            vpp  = value.max() - value.min()
+            offs = (value.max() + value.min())/2.0
+            name = kw['name'] if 'name' in kw.keys() else 'ABS'
+            self.update_waveform(2*(value-offs)/vpp, name=name)
+        else:
+            BaseDriver.performSetValue(self, quant, value, **kw)
 
     def __del_func(self, name):
         if name in self.arb_waveforms:

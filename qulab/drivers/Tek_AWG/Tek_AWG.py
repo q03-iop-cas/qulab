@@ -29,13 +29,13 @@ class Driver(BaseDriver):
         if quant.name == '':
             return
         else:
-            return super(Driver, self).performSetValue(quant, value, **kw)
+            return BaseDriver.performSetValue(self, quant, value, **kw)
 
     def performGetValue(self, quant, **kw):
         if quant.name == '':
             return ''
         else:
-            return super(Driver, self).performGetValue(quant, **kw)
+            return BaseDriver.performGetValue(self, quant, **kw)
 
     def creat_waveform(self, name, length):
         self.write('WLIS:WAV:NEW "%s",%d,INT;' % (name, length))
