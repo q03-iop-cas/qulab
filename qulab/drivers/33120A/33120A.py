@@ -3,21 +3,31 @@
 class Driver(BaseDriver):
     error_command = ''
     surport_models = ['33120A']
-    quants = []
+    quants = [
+        Q('Frequency', unit='Hz', type=DOUBLE,
+          set_cmd='FREQ %(value).11E Hz',
+          get_cmd='FREQ?'),
+        Q('Vpp', unit='V', type=DOUBLE,
+          set_cmd='VOLT %(value).5E VPP',
+          get_cmd='VOLT?')
+        Q('Offset', unit='V', type=DOUBLE,
+          set_cmd='VOLT:OFFS %(value).5E V',
+          get_cmd='VOLT:OFFS?')
+    ]
 
     max_waveform_size = 16000
     clip = lambda self,x: (2047*x).clip(-2047,2047)
     inner_waveform = ["SINC","NEG_RAMP","EXP_RISE","EXP_FALL","CARDIAC"]
 
     def performOpen(self):
-        self.write("FORM:BORD NORM")
-        self.waveform_list = self.query("DATA:CAT?")[1:-1].split('","')
-        self.current_waveform = self.query("FUNC:SHAP?")
+        self.write('FORM:BORD NORM')
+        self.waveform_list = self.query('DATA:CAT?')[1:-1].split('","')
+        self.current_waveform = self.query('FUNC:SHAP?')
         if self.current_waveform == 'USER':
-            self.current_waveform = self.query("FUNC:USER?")
-        self.arb_waveforms = self.query("DATA:NVOL:CAT?")[1:-1].split('","')
+            self.current_waveform = self.query('FUNC:USER?')
+        self.arb_waveforms = self.query('DATA:NVOL:CAT?')[1:-1].split('","')
         self.trigger_source = self.query('TRIG:SOUR?')
-        self.trigger_count  = int(float(self.query("BM:NCYC?")))
+        self.trigger_count  = int(float(self.query('BM:NCYC?')))
 
     def __del_func(self, name):
         if name in self.arb_waveforms:
@@ -65,27 +75,6 @@ class Driver(BaseDriver):
 
     def off(self):
         self.DC(0)
-
-    def set_freq(self, freq):
-        """设置频率"""
-        self.write('FREQ %.11E Hz' % freq)
-
-    def set_volt(self,ch=1, vpp=None, offs=None, low=None, high=None):
-        """设置电压
-
-        vpp  : 设置电压峰峰值
-        offs : 设置直流偏压
-        """
-        if vpp != None:
-            self.write('VOLT %.5E VPP' % vpp)
-        if offs != None:
-            self.write('VOLT:OFFS %.5E V' % offs)
-        if low == None and high != None:
-            self.write('VOLT %.5E VPP' % high)
-            self.write('VOLT:OFFS %.5E V' % 0.5*high)
-        if low != None and high != None:
-            self.write('VOLT %.5E VPP' % high-low)
-            self.write('VOLT:OFFS %.5E V' % 0.5*(high+low))
 
     def set_trigger(self, source='IMM', count=1):
         """设置触发

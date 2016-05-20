@@ -57,12 +57,23 @@ class InstrumentQuantity(Quantity):
     def setValue(self, value, **kw):
         self.value = value
         if self.driver is not None and self.set_cmd is not None:
-            cmd = self.set_cmd.format(value=value, **kw)
+            cmd = self.set_cmd % dict(value=value, **kw)
             self.driver.write(cmd)
 
     def getValue(self, **kw):
         if self.driver is not None and self.get_cmd is not None:
-            self.value = self.driver.query(self.get_cmd.format(**kw))
+            cmd = self.get_cmd % dict(**kw)
+            if self.type == QuantTypes.STRING:
+                res = self.driver.query(cmd)
+            else:
+                res = self.driver.query_ascii_values(cmd)
+            if self.type == QuantTypes.DOUBLE:
+                res = res[0]
+            elif self.type == QuantTypes.INTEGER:
+                res = int(res[0])
+            elif self.type == QuantTypes.BOOL:
+                res = bool(res)
+            self.value = res
         return self.value
 
 class BaseDriver():
