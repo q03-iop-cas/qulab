@@ -296,6 +296,7 @@ class InstrumentManager():
             return False
         else:
             self.instr[name] = DriverClass(**info)
+            self.instr[name].performOpen()
             return True
 
     def _get_driver_by_model(self, model):

@@ -1,0 +1,115 @@
+# -*- coding: utf-8 -*-
+
+class Driver(BaseDriver):
+    error_command = ''
+    surport_models = ['33120A']
+    quants = []
+
+    max_waveform_size = 16000
+    clip = lambda self,x: (2047*x).clip(-2047,2047)
+    inner_waveform = ["SINC","NEG_RAMP","EXP_RISE","EXP_FALL","CARDIAC"]
+
+    def performOpen(self):
+        self.write("FORM:BORD NORM")
+        self.waveform_list = self.query("DATA:CAT?")[1:-1].split('","')
+        self.current_waveform = self.query("FUNC:SHAP?")
+        if self.current_waveform == 'USER':
+            self.current_waveform = self.query("FUNC:USER?")
+        self.arb_waveforms = self.query("DATA:NVOL:CAT?")[1:-1].split('","')
+        self.trigger_source = self.query('TRIG:SOUR?')
+        self.trigger_count  = int(float(self.query("BM:NCYC?")))
+
+    def __del_func(self, name):
+        if name in self.arb_waveforms:
+            if name == self.current_waveform:
+                self.DC(0)
+            self.write('DATA:DEL %s' % name)
+            self.arb_waveforms.remove(name)
+            self.waveform_list.remove(name)
+
+    def update_waveform(self, values, name='ABS'):
+        values = (self.clip(np.array(values))).astype(int)
+        self.query_binary_values('DATA:DAC VOLATILE,', values=values,
+                                 dtype='H', is_big_endian=True)
+        if len(name) > 8:
+            name = name[:8]
+        name = name.upper()
+
+        if len(self.arb_waveforms) >= 4:
+            for wf in self.arb_waveforms:
+                if wf != self.current_waveform:
+                    self.__del_func(wf)
+
+        self.write('DATA:COPY %s,VOLATILE' % name)
+
+    def use_waveform(self, name, freq=None, vpp=None, offs=None, ch=1):
+        freq_s = ("%.11E" % freq) if freq != None else "DEF"
+        vpp_s  = ("%.5E"  % vpp)  if vpp  != None else "DEF"
+        offs_s = ("%.5E"  % offs) if offs != None else "DEF"
+        name = name.upper()
+        if name in self.inner_waveform:
+            self.write('APPL:%s %s,%s,%s' % (name, freq_s, vpp_s, offs_s))
+        else:
+            self.write('FUNC:USER %s' % name)
+            self.write('APPL:USER %s,%s,%s' % (freq_s, vpp_s, offs_s))
+        if self.trigger_source != 'IMM':
+            self.set_trigger(source = self.trigger_source,
+                             count  = self.trigger_count)
+        self.current_waveform = name
+        time.sleep(1)
+
+    def DC(self, v):
+        """输出直流电压"""
+        self.write('APPL:DC DEF,DEF,%.5E' % v)
+        self.current_waveform = 'DC'
+
+    def off(self):
+        self.DC(0)
+
+    def set_freq(self, freq):
+        """设置频率"""
+        self.write('FREQ %.11E Hz' % freq)
+
+    def set_volt(self,ch=1, vpp=None, offs=None, low=None, high=None):
+        """设置电压
+
+        vpp  : 设置电压峰峰值
+        offs : 设置直流偏压
+        """
+        if vpp != None:
+            self.write('VOLT %.5E VPP' % vpp)
+        if offs != None:
+            self.write('VOLT:OFFS %.5E V' % offs)
+        if low == None and high != None:
+            self.write('VOLT %.5E VPP' % high)
+            self.write('VOLT:OFFS %.5E V' % 0.5*high)
+        if low != None and high != None:
+            self.write('VOLT %.5E VPP' % high-low)
+            self.write('VOLT:OFFS %.5E V' % 0.5*(high+low))
+
+    def set_trigger(self, source='IMM', count=1):
+        """设置触发
+
+        source : 触发源，可设为'IMM', 'EXT' 或 'BUS'
+        count  : 脉冲串的个数
+        """
+        if source not in ['IMM', 'EXT', 'BUS']:
+            return
+        if count < 1 or count > 50000:
+            return
+        self.trigger_source = source
+        self.write("TRIG:SOUR %s" % source)
+        self.trigger_count = count
+        if count != 1:
+            self.write("BM:NCYC %d" % count)
+        if source != 'IMM':
+            self.write("BM:STAT ON")
+
+    def refresh(self):
+        """刷新波形"""
+        if self.current_waveform == "DC":
+            return
+        if self.current_waveform not in self.inner_waveform:
+            self.write("FUNC:SHAP USER")
+        else:
+            self.write("FUNC:SHAP %s" % self.current_waveform)
