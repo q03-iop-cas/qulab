@@ -10,7 +10,7 @@ class Driver(BaseDriver):
           get_cmd='FREQ?'),
         Q('Vpp', unit='V', type=DOUBLE,
           set_cmd='VOLT %(value).5E VPP',
-          get_cmd='VOLT?')
+          get_cmd='VOLT?'),
         Q('Offset', unit='V', type=DOUBLE,
           set_cmd='VOLT:OFFS %(value).5E V',
           get_cmd='VOLT:OFFS?'),
