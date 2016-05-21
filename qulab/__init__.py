@@ -18,7 +18,7 @@ class Lab():
 
     def open_instr(self, name, addr):
         self.instr.add_instr(name, addr)
-        return self.instr['name']
+        return self.instr[name]
 
     def savetxt(self, name, X, database='D:\\', header=''):
         basedir = os.path.join(database, time.strftime('%Y/%m/%Y%m%d'))
