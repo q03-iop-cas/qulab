@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+import time
 
 class Driver(BaseDriver):
     error_command = ''
@@ -29,11 +30,9 @@ class Driver(BaseDriver):
 
         if self.model == '33120A':
             self.max_waveform_size = 16000
-            self.clip = lambda self,x: (2047*x).clip(-2047,2047)
             self.trigger_count  = int(float(self.query('BM:NCYC?')))
         elif self.model == '33220A':
             self.max_waveform_size = 16384
-            self.clip = lambda self,x: (8191*x).clip(-8191,8191)
             self.trigger_count  = int(float(self.ask("BURS:NCYC?")))
 
     def performSetValue(self, quant, value, **kw):
@@ -58,9 +57,13 @@ class Driver(BaseDriver):
             self.waveform_list.remove(name)
 
     def update_waveform(self, values, name='ABS'):
-        values = (self.clip(np.array(values))).astype(int)
-        self.query_binary_values('DATA:DAC VOLATILE,', values=values,
-                                 dtype='H', is_big_endian=True)
+        if self.model == '33120A':
+            clip = lambda x: (2047*x).clip(-2047,2047).astype(int)
+        elif self.model == '33220A':
+            clip = lambda x: (8191*x).clip(-8191,8191).astype(int)
+        values = clip(values)
+        self.write_binary_values('DATA:DAC VOLATILE,', values,
+                                 datatype='h', is_big_endian=True)
         if len(name) > 8:
             name = name[:8]
         name = name.upper()

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from qulab.quantity import Quantity, QuantTypes
 import logging
-import string
+import string, struct
 import copy
 import os
 import sys
 import re
 import visa
+import numpy as np
 
 logger = logging.getLogger("drivers")
 logger.setLevel(logging.DEBUG)
@@ -203,7 +204,7 @@ class BaseDriver():
             self.check_errors_and_log(log_msg)
         return ret
 
-    def write_binary_values(message, values,
+    def write_binary_values(self, message, values,
                             datatype='f', is_big_endian=False,
                             termination=None, encoding=None, check_errors=False):
         if self.ins is None:
