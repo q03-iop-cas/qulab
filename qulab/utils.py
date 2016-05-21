@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import re
+import numpy as np
 
 inline_mod  = re.compile(r'^\s*(.*)#(.*){{{setting}}}\s*$')
 block_begin = re.compile(r'^(\s*)#{{{')
