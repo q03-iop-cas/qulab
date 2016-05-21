@@ -71,8 +71,26 @@ def get_probility(x, N, a=0.05):
 
     返回事件 A 发生概率 P 的最概然取值、期望、以及其置信区间
     '''
-    P = x/N
+    P = 1.0*x/N
     E = (x+1.0)/(N+2.0)
     std = np.sqrt(E*(1-E)/(N+3))
     low, high = beta.ppf(0.5*a,x+1,N-x+1), beta.ppf(1-0.5*a,x+1,N-x+1)
     return P, E, std, (low, high)
+
+def get_threshold(data, delta=1e-7):
+    '''给定一组成双峰分布的数据 data 计算双峰之间的分界值
+
+    data : 数据类型 numpy.array
+    delta: 精确度，默认 delta = 1e-7
+    '''
+    threshold = m1 = m2 = data.mean()
+    while True:
+        g1 = data[data<threshold]
+        g2 = data[data>threshold]
+        m1 = g1.mean()
+        m2 = g2.mean()
+        t = (m1+m2)/2
+        if abs(threshold-t) < delta:
+            break
+        threshold = t
+    return threshold

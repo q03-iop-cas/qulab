@@ -45,6 +45,7 @@ class Driver(BaseDriver):
             offs = (value.max() + value.min())/2.0
             name = kw['name'] if 'name' in kw.keys() else 'ABS'
             self.update_waveform(2*(value-offs)/vpp, name=name)
+            self.use_waveform(name, vpp=vpp, offs=offs)
         else:
             BaseDriver.performSetValue(self, quant, value, **kw)
 
