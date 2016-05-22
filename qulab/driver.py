@@ -142,7 +142,7 @@ class BaseDriver():
         return res
 
     def query_ascii_values(self, message, converter='f', separator=',',
-                           container="<type 'list'>", delay=None,
+                           container=list, delay=None,
                            check_errors=False):
         if self.ins is None:
             return None
@@ -158,7 +158,7 @@ class BaseDriver():
         return res
 
     def query_binary_values(self, message, datatype='f', is_big_endian=False,
-                            container="<type 'list'>", delay=None,
+                            container=list, delay=None,
                             header_fmt='ieee', check_errors=False):
         if self.ins is None:
             return None
