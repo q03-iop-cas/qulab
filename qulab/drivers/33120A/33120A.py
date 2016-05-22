@@ -15,7 +15,10 @@ class Driver(BaseDriver):
         Q('Offset', unit='V', type=DOUBLE,
           set_cmd='VOLT:OFFS %(value).5E V',
           get_cmd='VOLT:OFFS?'),
-        Q('Waveform', unit='V', type=VECTOR)
+        Q('Waveform', unit='V', type=VECTOR),
+        Q('Trigger', type=STRING,
+          set_cmd='TRIG:SOUR %(value)s',
+          get_cmd='TRIG:SOUR?')
     ]
 
     def performOpen(self):
@@ -43,8 +46,9 @@ class Driver(BaseDriver):
             vpp  = value.max() - value.min()
             offs = (value.max() + value.min())/2.0
             name = kw['name'] if 'name' in kw.keys() else 'ABS'
+            freq = kw['freq'] if 'freq' in kw.keys() else None
             self.update_waveform(2*(value-offs)/vpp, name=name)
-            self.use_waveform(name, vpp=vpp, offs=offs)
+            self.use_waveform(name, vpp=vpp, offs=offs, freq=freq)
         else:
             BaseDriver.performSetValue(self, quant, value, **kw)
 

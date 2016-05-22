@@ -65,7 +65,7 @@ class Driver(BaseDriver):
         current_waveforms = []
         current_waveform_size = 0
         for i in [1,2,3,4]:
-            wn = self.query('SOUR%d:WAV?')[1:-2]
+            wn = self.query('SOUR%d:WAV?' % i)[1:-2]
             current_waveforms.append(wn)
             if wn != '' and current_waveform_size == 0:
                 current_waveform_size = self.query_ascii_values('WLIS:WAV:LENGTH? "%s"' % wn, 'd')[0]
