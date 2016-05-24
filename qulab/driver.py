@@ -53,15 +53,16 @@ class InstrumentQuantity(Quantity):
         self.driver = None
         self.set_cmd = set_cmd
         self.get_cmd = get_cmd
-        self.options = {}
+        self.options = options
 
     def setValue(self, value, **kw):
         self.value = value
         if self.driver is not None and self.set_cmd is not None:
             if self.type == QuantTypes.OPTION:
-                if value is not in self.options.keys():
+                if value not in self.options.keys():
+                    logger.error('%s not in %s options' % (value, self.name))
                     return
-                cmd = self.set_cmd % dict(option=self.options[value])
+                cmd = self.set_cmd % dict(option = self.options[value])
             else:
                 cmd = self.set_cmd % dict(value=value, **kw)
             self.driver.write(cmd)
