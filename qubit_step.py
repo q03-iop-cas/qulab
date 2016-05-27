@@ -10,7 +10,7 @@ Lab = open_lab()
 
 class SQUID_Bais():
     def __init__(self):
-        self.t = np.array([0,4.6,   5,   8,   9, 9.5,  10])
+        self.t = np.array([0,  5, 5.5, 8.5,   9, 9.8,  10])
         self.y = np.array([0,  0, 1.5, 2.1,  -1,   0,   0])
 
     def gen(self, n):
