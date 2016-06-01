@@ -12,8 +12,8 @@ from PyQt4 import QtCore
 from qulab.base import Manager
 
 
-def step(follows=None):
-    """@step(follows)
+def step(follows=None, refresh=None):
+    """@step(follows, refresh)
 
     This is a decorator applied to Python methods of a qulab.Application that marks them
     as an experiment step.
@@ -22,6 +22,8 @@ def step(follows=None):
     ----------
 
     follows : a list of string, optional, default: None
+    refresh : number, optional, default: None
+              refresh time in seconds.
     """
     def decorator(method):
         @functools.wraps(method)
@@ -39,25 +41,30 @@ def step(follows=None):
                     kw[name] = kwargs[name]
             method(self, **kw)
         wrapper._follows = [] if follows is None else follows
+        wrapper._refresh = refresh
         wrapper.thread = None
         return wrapper
     return decorator
-    
+
 
 class Task(QtCore.QObject):
     finished = QtCore.pyqtSignal(str)
 
-    def __init__(self, func, obj=None, follows=None):
+    def __init__(self, func, obj=None, follows=None, refresh=None):
         super(Task, self).__init__()
         self.func = [func, obj]
         self.kwargs = {}
         self.follows = [] if follows is None else follows
+        self.refresh = refresh
         self.rest = {}
         self.myThread = None
         self._paused = False
         for name in follows:
             self.rest[name] = False
         self._isFinished = False
+        if self.refresh is not None:
+            self.timer = QtCore.QTimer()
+            self.timer.timeout.connect(self.start)
 
     def set_args(self, **kwargs):
         self.kwargs = kwargs
@@ -78,8 +85,8 @@ class Task(QtCore.QObject):
 
     def run(self):
         while self._paused:
-            time.sleep(0.01)
-            
+            time.sleep(0.1)
+
         if self.func[1] is not None:
             self.func[0](self.func[1], **self.kwargs)
         else:
@@ -90,16 +97,16 @@ class Task(QtCore.QObject):
 
     def is_finished(self):
         return self._isFinished
-        
-        
+
+
 class TaskManager(Manager):
     one_loop_finished = QtCore.pyqtSignal()
-    
+
     def __init__(self, app):
         super(TaskManager, self).__init__(app)
         self._tasks = None
         self._paused = False
-        
+
     def init(self):
         def _foo(**kw): pass
         def _bar(**kw): pass
@@ -109,10 +116,13 @@ class TaskManager(Manager):
         for name, value in vars(self.app.__class__).items():
             if hasattr(value, '_follows'):
                 value._follows.append("_foo")
-                task = Task(value, self.app, value._follows)
+                task = Task(value, self.app, value._follows, value._refresh)
                 self._tasks[value.__name__] = task
 
-        end_follows = [t.func[0].__name__ for t in self._tasks.values()]
+        end_follows = []
+        for t in self._tasks.values():
+            if t.refresh is None:
+                end_follows.append(t.func[0].__name__)
 
         self._tasks["_bar"] = Task(_bar, follows=end_follows)
 
@@ -126,27 +136,28 @@ class TaskManager(Manager):
             steps.moveToThread(thread)
             steps.myThread = thread
             thread.start()
-            
+            if steps.refresh is not None:
+                steps.timer.start(int(steps.refresh*1000))
+
     def set_args_for_tasks(self, **kwargs):
         for t in self._tasks.values():
             t.set_args(**kwargs)
             t.reset()
-            
+
     def start_tasks(self):
         self._tasks['_foo'].start()
-    
+
     def wait_tasks_finish(self):
         while True:
             if self._tasks['_bar'].is_finished():
                 break
             time.sleep(0.1)
         self.one_loop_finished.emit()
-    
+
     def paused(self, p=True):
         for t in self._tasks.values():
             t._paused = p
         self._paused = p
-            
+
     def is_paused(self):
         return self._paused
-        
