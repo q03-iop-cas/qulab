@@ -74,6 +74,36 @@ class Wrapper():
                       TriggerEngine1, Source1, Slope1, Level1,
                       TriggerEngine2, Source2, Slope2, Level2)
 
+    #RETURN_CODE  AlazarSetTriggerDelay( HANDLE h, U32 Delay);
+    def AlazarSetTriggerDelay(self, Delay=0):
+        self.callFunc('AlazarSetTriggerDelay', self.handle, Delay)
+
+    #RETURN_CODE  AlazarSetTriggerTimeOut( HANDLE h, U32 to_ns);
+    def AlazarSetTriggerTimeOut(self, time=0.0):
+        tick = int(time*1E5)
+        self.callFunc('AlazarSetTriggerTimeOut', self.handle, tick)
+
+    #RETURN_CODE AlazarSetRecordSize( HANDLE h, U32 PreSize, U32 PostSize);
+    def AlazarSetRecordSize(self, PreSize, PostSize):
+        self.nPreSize = int(PreSize)
+        self.nPostSize = int(PostSize)
+        self.callFunc('AlazarSetRecordSize', self.handle, PreSize, PostSize)
+
+    #RETURN_CODE AlazarSetRecordCount( HANDLE h, U32 Count);
+    def AlazarSetRecordCount(self, Count):
+        self.nRecord = int(Count)
+        self.callFunc('AlazarSetRecordCount', self.handle, Count)
+
+    #U32	AlazarBusy( HANDLE h);
+    def AlazarBusy(self):
+        # call function, return result
+        return bool(API.AlazarBusy(self.handle))
+
+    def AlazarRead(self, Channel, Buffer, ElementSize, Record, TransferOffset, TransferLength):
+        self.callFunc('AlazarRead', self.handle,
+                      Channel, Buffer, ElementSize,
+                      Record, TransferOffset, TransferLength)
+
     #RETURN_CODE AlazarInputControl( HANDLE h, U8 Channel, U32 Coupling, U32 InputRange, U32 Impedance);
     def AlazarInputControl(self, Channel, Coupling, InputRange, Impedance):
         # keep track of input range
@@ -134,36 +164,6 @@ class Wrapper():
         self.AlazarSetTriggerOperation(TriggerOperation=TRIG_ENGINE_OP_J,
                                        TriggerEngine1=TRIG_ENGINE_J, Source1=TRIG_EXTERNAL, Slope1=TRIGGER_SLOPE_POSITIVE, Level1=int(128+127*0.5/5.0),
                                        TriggerEngine2=TRIG_ENGINE_K, Source2=TRIG_DISABLE, Slope2=TRIGGER_SLOPE_POSITIVE, Level2=128)
-
-    #RETURN_CODE  AlazarSetTriggerDelay( HANDLE h, U32 Delay);
-    def AlazarSetTriggerDelay(self, Delay=0):
-        self.callFunc('AlazarSetTriggerDelay', self.handle, Delay)
-
-    #RETURN_CODE  AlazarSetTriggerTimeOut( HANDLE h, U32 to_ns);
-    def AlazarSetTriggerTimeOut(self, time=0.0):
-        tick = U32(int(time*1E5))
-        self.callFunc('AlazarSetTriggerTimeOut', self.handle, tick)
-
-    #RETURN_CODE AlazarSetRecordSize( HANDLE h, U32 PreSize, U32 PostSize);
-    def AlazarSetRecordSize(self, PreSize, PostSize):
-        self.nPreSize = int(PreSize)
-        self.nPostSize = int(PostSize)
-        self.callFunc('AlazarSetRecordSize', self.handle, PreSize, PostSize)
-
-    #RETURN_CODE AlazarSetRecordCount( HANDLE h, U32 Count);
-    def AlazarSetRecordCount(self, Count):
-        self.nRecord = int(Count)
-        self.callFunc('AlazarSetRecordCount', self.handle, Count)
-
-    #U32	AlazarBusy( HANDLE h);
-    def AlazarBusy(self):
-        # call function, return result
-        return bool(API.AlazarBusy(self.handle))
-
-    def AlazarRead(self, Channel, Buffer, ElementSize, Record, TransferOffset, TransferLength):
-        self.callFunc('AlazarRead', self.handle,
-                      Channel, Buffer, ElementSize,
-                      Record, TransferOffset, TransferLength)
 
     def readTraces(self, Channel, samplesPerRecord=1024, repeats=1000):
         """Read traces, convert to float, average to a single trace"""
