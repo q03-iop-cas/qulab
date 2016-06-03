@@ -91,6 +91,30 @@ class InstrumentQuantity(Quantity):
             self.value = res
         return self.value
 
+    def getIndex(self, **kw):
+        value = self.getValue(**kw)
+        if value is None:
+            return None
+
+        if self.type == QuantTypes.OPTION:
+            i = 0
+            for i in range(len(self.options)):
+                if self.options[i][0] == value:
+                    break
+            return i
+        else:
+            return None
+
+    def getCmdOption(self, **kw):
+        value = self.getValue(**kw)
+        if value is None:
+            return None
+
+        if self.type == QuantTypes.OPTION:
+            return dict(self.options)[value]
+        else:
+            return None
+
 class BaseDriver():
     error_command = 'SYST:ERR?'
     surport_models = []
@@ -241,6 +265,14 @@ class BaseDriver():
             return self.performGetValue(self.quantities[name], **kw)
         else:
             return None
+
+    def getIndex(self, name, **kw):
+        if name in self.quantities:
+            return self.quantities[name].getIndex(**kw)
+
+    def getCmdOption(self, name, **kw):
+        if name in self.quantities:
+            return self.quantities[name].getCmdOption(**kw)
 
     def setValue(self, name, value, **kw):
         if name in self.quantities:
