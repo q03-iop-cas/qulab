@@ -1,5 +1,5 @@
 from AlazarCmd import *
-from AlazarError import *
+from AlazarError import RETURN_CODE
 import AlazarApi as API
 import numpy as np
 import time
@@ -7,7 +7,7 @@ import time
 class Error(Exception):
     pass
 
-class Wrapper():
+class AlazarTechDigitizer():
     def __init__(self, systemId=1, boardId=1):
         """The init case defines a session ID, used to identify the instrument"""
         # range settings
@@ -37,9 +37,9 @@ class Wrapper():
 
     def testLED(self):
         import time
-        self.callFunc('AlazarSetLED', self.handle, 1)
+        self.callFunc('AlazarSetLED', self.handle, LED_ON)
         time.sleep(0.1)
-        self.callFunc('AlazarSetLED', self.handle, 0)
+        self.callFunc('AlazarSetLED', self.handle, LED_OFF)
 
     def getError(self, status):
         """Convert the error in status to a string"""
@@ -168,7 +168,7 @@ class Wrapper():
     def readTraces(self, Channel, samplesPerRecord=1024, repeats=1000):
         """Read traces, convert to float, average to a single trace"""
         # define sizes
-        bitsPerSample = 8
+        bitsPerSample = self.BitsPerSample
         bytesPerSample = int(np.floor((float(bitsPerSample) + 7.) / 8.0))
         #samplesPerRecord = self.nPreSize + self.nPostSize
         # The buffer must be at least 16 samples larger than the transfer size
