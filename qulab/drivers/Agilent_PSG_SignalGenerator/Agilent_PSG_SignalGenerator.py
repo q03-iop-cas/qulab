@@ -13,6 +13,6 @@ class Driver(BaseDriver):
           set_cmd=':POWER %(value).8e',
           get_cmd=':POWER?'),
 
-        Q('Output', unit='', type=STRING,
-          set_cmd=':OUTP %(value)s'),
+        Q('Output', unit='', type=OPTION,
+          set_cmd=':OUTP %(option)s', options=[('OFF', 'OFF'), ('ON', 'ON')]),
     ]
