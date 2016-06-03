@@ -48,7 +48,7 @@ def IEEE_488_2_BinBlock(datalist, dtype="int16", is_big_endian=True):
 class InstrumentQuantity(Quantity):
     def __init__(self, name, value=None, type=QuantTypes.DOUBLE,
                  unit=None, dimension=None,
-                 set_cmd=None, get_cmd=None, options={}):
+                 set_cmd=None, get_cmd=None, options=[]):
         Quantity.__init__(self, name, value, type, unit, dimension)
         self.driver = None
         self.set_cmd = set_cmd
@@ -59,10 +59,11 @@ class InstrumentQuantity(Quantity):
         self.value = value
         if self.driver is not None and self.set_cmd is not None:
             if self.type == QuantTypes.OPTION:
-                if value not in self.options.keys():
+                options = dict(self.options)
+                if value not in options.keys():
                     logger.error('%s not in %s options' % (value, self.name))
                     return
-                cmd = self.set_cmd % dict(option = self.options[value])
+                cmd = self.set_cmd % dict(option = options[value])
             else:
                 cmd = self.set_cmd % dict(value=value, **kw)
             self.driver.write(cmd)
@@ -83,8 +84,8 @@ class InstrumentQuantity(Quantity):
             elif self.type == QuantTypes.OPTION:
                 if res[-1] == '\n':
                     res = res[:-1]
-                for key in self.options.keys():
-                    if self.options[key] == res:
+                for key, value in self.options:
+                    if value == res:
                         res = key
                         break
             self.value = res
