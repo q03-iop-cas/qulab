@@ -80,7 +80,7 @@ class AlazarTechDigitizer():
 
     #RETURN_CODE  AlazarSetTriggerTimeOut( HANDLE h, U32 to_ns);
     def AlazarSetTriggerTimeOut(self, time=0.0):
-        tick = int(time*1E5)
+        tick = int(time*1E9)
         self.callFunc('AlazarSetTriggerTimeOut', self.handle, tick)
 
     #RETURN_CODE AlazarSetRecordSize( HANDLE h, U32 PreSize, U32 PostSize);
