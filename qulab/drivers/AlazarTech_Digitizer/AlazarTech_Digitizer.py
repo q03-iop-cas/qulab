@@ -3,29 +3,29 @@ import numpy as np
 class Driver(BaseDriver):
     surport_models = ['ATS9870']
     quants = [
-        Q('Ext Term', unit='', type=OPTION, options={'50 Ohm' : '0', '1 MOhm' : '1'}),
-        Q('A Term', unit='', type=OPTION, options={'50 Ohm' : '0', '1 MOhm' : '1'}),
-        Q('B Term', unit='', type=OPTION, options={'50 Ohm' : '0', '1 MOhm' : '1'}),
-        Q('Ext Coupling', unit='', type=OPTION, options={'DC' : '0', 'AC' : '1'}),
-        Q('A Coupling', unit='', type=OPTION, options={'DC' : '0', 'AC' : '1'}),
-        Q('B Coupling', unit='', type=OPTION, options={'DC' : '0', 'AC' : '1'}),
+        Q('Ext Term', unit='', type=OPTION, options=[('50 Ohm', '0'), ('1 MOhm', '1')]),
+        Q('A Term', unit='', type=OPTION, options=[('50 Ohm', '0'), ('1 MOhm', '1')]),
+        Q('B Term', unit='', type=OPTION, options=[('50 Ohm', '0'), ('1 MOhm', '1')]),
+        Q('Ext Coupling', unit='', type=OPTION, options=[('DC', '0'), ('AC', '1')]),
+        Q('A Coupling', unit='', type=OPTION, options=[('DC', '0'), ('AC', '1')]),
+        Q('B Coupling', unit='', type=OPTION, options=[('DC', '0'), ('AC', '1')]),
 
         Q('Trigger Mode', type=OPTION,
-            options = {
-                'J'           : 0,
-                'K'           : 1,
-                'J or K'      : 2,
-                'J and K'     : 3,
-                'J xor K'     : 4,
-                'J and not K' : 5,
-                'not J and K' : 6,
-            })
+            options = [
+                ('J',            0),
+                ('K',            1),
+                ('J or K',       2),
+                ('J and K',      3),
+                ('J xor K',      4),
+                ('J and not K',  5),
+                ('not J and K',  6),
+            ])
         Q('J Level', unit='V', type=DOUBLE),
         Q('K Level', unit='V', type=DOUBLE),
-        Q('J Slope', type=OPTION, options={'Positive' : 1, 'Negative' : 2}),
-        Q('K Slope', type=OPTION, options={'Positive' : 1, 'Negative' : 2}),
-        Q('J Source', type=OPTION, options={'ChA' : 0, 'ChB' : 1, 'Ext' : 2, 'Disable' : 3, 'ChC' : 4, 'ChD' : 5}),
-        Q('K Source', type=OPTION, options={'ChA' : 0, 'ChB' : 1, 'Ext' : 2, 'Disable' : 3, 'ChC' : 4, 'ChD' : 5}),
+        Q('J Slope', type=OPTION, options=[('Positive', 1), ('Negative', 2)]),
+        Q('K Slope', type=OPTION, options=[('Positive', 1), ('Negative', 2)]),
+        Q('J Source', type=OPTION, options=[('ChA', 0), ('ChB', 1), ('Ext', 2), ('Disable', 3), ('ChC', 4), ('ChD', 5)]),
+        Q('K Source', type=OPTION, options=[('ChA', 0), ('ChB', 1), ('Ext', 2), ('Disable', 3), ('ChC', 4), ('ChD', 5)]),
     ]
 
     def __init__(self, **kw):
@@ -66,7 +66,7 @@ class Driver(BaseDriver):
         self.dig.AlazarSetCaptureClock(SourceId, SampleRateId, 0, Decimation)
         # define time step from sample rate
         self.dt = 1/lFreq[self.getValueIndex('Sample rate')]
-        # 
+        #
         # configure inputs
         for n in range(2):
             if self.getValue('Ch%d - Enabled' % (n+1)):
