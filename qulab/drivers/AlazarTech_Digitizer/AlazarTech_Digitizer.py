@@ -58,7 +58,7 @@ class Driver(BaseDriver):
                 ('J xor K',      4),
                 ('J and not K',  5),
                 ('not J and K',  6),
-            ])
+            ]),
         Q('J Level', value=0.1, unit='V', type=DOUBLE),
         Q('K Level', value=0.1, unit='V', type=DOUBLE),
         Q('J Slope', value='Positive', type=OPTION, options=[('Positive', 1), ('Negative', 2)]),
