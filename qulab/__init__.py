@@ -4,16 +4,18 @@ import numpy as np
 import logging
 import logging.handlers
 from qulab.driver import InstrumentManager
+from qulab.application import Application
+from qulab.task import step
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+socketHandler = logging.handlers.SocketHandler('localhost',\
+                    logging.handlers.DEFAULT_TCP_LOGGING_PORT)
+socketHandler.setLevel(logging.DEBUG)
+logger.addHandler(socketHandler)
 
 class Lab():
     def __init__(self):
-        logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
-        socketHandler = logging.handlers.SocketHandler('localhost',\
-                        logging.handlers.DEFAULT_TCP_LOGGING_PORT)
-        socketHandler.setLevel(logging.DEBUG)
-        logger.addHandler(socketHandler)
-
         self.instr = InstrumentManager()
 
     def open_instr(self, name, addr):
