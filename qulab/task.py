@@ -72,6 +72,10 @@ class Task(QtCore.QObject):
     @QtCore.pyqtSlot(str)
     def start(self, name=''):
         name = str(name)
+        if name == '' and self.refresh is not None:
+            self.run()
+            return
+            
         if name in self.follows:
             self.rest[name] = True
 
