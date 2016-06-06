@@ -95,3 +95,8 @@ def get_threshold(data, delta=1e-7):
             break
         threshold = t
     return threshold
+
+# 生成 5 系列的 marker 信号
+mark     = lambda wav: ''.join(list(map(lambda x: '0' if x==0 else '1',wav)))
+mark_or  = lambda a,b: ''.join(list(map(lambda x,y: '1' if x=='1' or y=='1' else '0',a,b)))
+mark_and = lambda a,b: ''.join(list(map(lambda x,y: '0' if x=='0' or y=='0' else '1',a,b)))
