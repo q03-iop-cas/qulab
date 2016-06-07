@@ -80,8 +80,12 @@ class AlazarTechDigitizer():
 
     #RETURN_CODE  AlazarSetTriggerTimeOut( HANDLE h, U32 to_ns);
     def AlazarSetTriggerTimeOut(self, time=0.0):
-        tick = int(time*1E9)
+        tick = int(time*1E5)
         self.callFunc('AlazarSetTriggerTimeOut', self.handle, tick)
+
+    #RETURN_CODE AlazarSetBWLimit( HANDLE h, U8 Channel, U32 enable);
+    def AlazarSetBWLimit(self, Channel, enable):
+        self.callFunc('AlazarSetBWLimit', self.handle, Channel, enable)
 
     #RETURN_CODE AlazarSetRecordSize( HANDLE h, U32 PreSize, U32 PostSize);
     def AlazarSetRecordSize(self, PreSize, PostSize):
@@ -173,7 +177,7 @@ class AlazarTechDigitizer():
         #samplesPerRecord = self.nPreSize + self.nPostSize
         # The buffer must be at least 16 samples larger than the transfer size
         samplesPerBuffer = samplesPerRecord + 16
-        dataBuffer = (c_uint8*samplesPerBuffer)()
+        dataBuffer = (API.c_uint8*samplesPerBuffer)()
         # define scale factors
         codeZero = 2 ** (float(bitsPerSample) - 1) - 0.5
         codeRange = 2 ** (float(bitsPerSample) - 1) - 0.5

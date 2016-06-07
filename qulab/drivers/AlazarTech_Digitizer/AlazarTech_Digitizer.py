@@ -1,5 +1,6 @@
 import numpy as np
 from AlazarCmd import *
+from AlazarTech_Wrapper import AlazarTechDigitizer
 
 class Driver(BaseDriver):
     surport_models = ['ATS9870']
@@ -79,7 +80,6 @@ class Driver(BaseDriver):
 
     def __load_wrapper(self):
         if self.dig is None:
-            from AlazarTech_Wrapper import AlazarTechDigitizer
             self.dig = AlazarTechDigitizer(self.systemID, self.boardID)
 
     def set_configs(self):
@@ -98,7 +98,7 @@ class Driver(BaseDriver):
                  1E6, 2E6, 5E6, 10E6, 20E6, 25E6, 50E6, 100E6, 125E6, 160E6,
                  180E6, 200E6, 250E6, 400E6, 500E6, 800E6, 1E9, 1.2E9, 1.5E9,
                  1.6E9, 1.8E9, 2E9]
-        self.dt = 1/lFreq[self.getValueIndex('Sample Rate')]
+        self.dt = 1/lFreq[self.getIndex('Sample Rate')]
         #
         # configure inputs
         for ch in ['A', 'B']:
@@ -109,7 +109,7 @@ class Driver(BaseDriver):
             Impedance = self.getCmdOption('%s Term' % ch)
             self.dig.AlazarInputControl(chId, Coupling, InputRange, Impedance)
             # bandwidth limit
-            BW = self.getValue('%s Bandwidth limit' % ch)
+            BW = self.getCmdOption('%s Bandwidth limit' % ch)
             self.dig.AlazarSetBWLimit(chId, BW)
         Coupling = self.getCmdOption('Ext Coupling')
         self.dig.AlazarSetExternalTrigger(Coupling)
@@ -153,19 +153,19 @@ class Driver(BaseDriver):
         # set trig delay and timeout
         Delay = int(self.getValue('Trigger Delay')/self.dt)
         self.dig.AlazarSetTriggerDelay(Delay)
-        timeout = self.getValue['Trigger Timeout']
+        timeout = self.getValue('Trigger Timeout')
         self.dig.AlazarSetTriggerTimeOut(time=timeout)
         self.config_updated = True
 
     def performSetValue(self, quant, value, **kw):
-        if quant.name not in ['']:
-            BaseDriver.performSetValue(quant, value, **kw)
+        #if quant.name not in ['']:
+        BaseDriver.performSetValue(self, quant, value, **kw)
         self.config_updated = False
 
     def performGetValue(self, quant, **kw):
         self.__load_wrapper()
-        self.set_configs()
-        pass
+        #self.set_configs()
+        return quant.getValue(**kw)
 
     def errors(self):
         self.__load_wrapper()
@@ -180,6 +180,7 @@ class Driver(BaseDriver):
 
     def getTraces(self, samplesPerRecord=1024, repeats=1000, timeout = 10):
         self.__load_wrapper()
+        self.set_configs()
         ChA, ChB = [], []
         max = 5000
         loop = int(repeats/max)
@@ -187,10 +188,10 @@ class Driver(BaseDriver):
         try:
             if last < repeats:
                 for i in range(loop):
-                    a, b = self.wrapper.get_Traces(samplesPerRecord, max, timeout)
+                    a, b = self.dig.get_Traces(samplesPerRecord, max, timeout)
                     ChA.extend(a)
                     ChB.extend(b)
-            a, b = self.wrapper.get_Traces(samplesPerRecord, last, timeout)
+            a, b = self.dig.get_Traces(samplesPerRecord, last, timeout)
             ChA.extend(a)
             ChB.extend(b)
         except:
