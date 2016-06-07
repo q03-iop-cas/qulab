@@ -48,6 +48,8 @@ class Driver(BaseDriver):
         Q('B Coupling', value='DC', type=OPTION, options=[('DC', 2), ('AC', 1)]),
         Q('A Range', value=1, unit='V', type=DOUBLE),
         Q('B Range', value=1, unit='V', type=DOUBLE),
+        Q('A Bandwidth limit', value='Disable', type=OPTION, options=[('Disable', 0), ('Enable', 1)]),
+        Q('B Bandwidth limit', value='Disable', type=OPTION, options=[('Disable', 0), ('Enable', 1)]),
 
         Q('Trigger Mode', type=OPTION,
             options = [
@@ -107,8 +109,8 @@ class Driver(BaseDriver):
             Impedance = self.getCmdOption('%s Term' % ch)
             self.dig.AlazarInputControl(chId, Coupling, InputRange, Impedance)
             # bandwidth limit
-            #BW = self.getValue('%s Bandwidth limit' % ch)
-            #self.dig.AlazarSetBWLimit(chId, BW)
+            BW = self.getValue('%s Bandwidth limit' % ch)
+            self.dig.AlazarSetBWLimit(chId, BW)
         Coupling = self.getCmdOption('Ext Coupling')
         self.dig.AlazarSetExternalTrigger(Coupling)
         #
