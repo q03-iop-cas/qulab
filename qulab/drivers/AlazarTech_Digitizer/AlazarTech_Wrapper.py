@@ -12,7 +12,7 @@ class AlazarTechDigitizer():
         """The init case defines a session ID, used to identify the instrument"""
         # range settings
         self.dRange = {}
-        print('Number of systems:', API.AlazarNumOfSystems())
+        #print('Number of systems:', API.AlazarNumOfSystems())
         handle = API.AlazarGetBoardBySystemID(systemId, boardId)
         if handle is None:
             raise Error('Device with system ID=%d and board ID=%d could not be found.' % (systemId, boardId))
@@ -169,12 +169,12 @@ class AlazarTechDigitizer():
                                        TriggerEngine1=TRIG_ENGINE_J, Source1=TRIG_EXTERNAL, Slope1=TRIGGER_SLOPE_POSITIVE, Level1=int(128+127*0.5/5.0),
                                        TriggerEngine2=TRIG_ENGINE_K, Source2=TRIG_DISABLE, Slope2=TRIGGER_SLOPE_POSITIVE, Level2=128)
 
-    def readTraces(self, Channel, samplesPerRecord=1024, repeats=1000):
+    def readTraces(self, Channel):
         """Read traces, convert to float, average to a single trace"""
         # define sizes
         bitsPerSample = self.BitsPerSample
         bytesPerSample = int(np.floor((float(bitsPerSample) + 7.) / 8.0))
-        #samplesPerRecord = self.nPreSize + self.nPostSize
+        samplesPerRecord = self.nPreSize + self.nPostSize
         # The buffer must be at least 16 samples larger than the transfer size
         samplesPerBuffer = samplesPerRecord + 16
         dataBuffer = (API.c_uint8*samplesPerBuffer)()
@@ -184,9 +184,9 @@ class AlazarTechDigitizer():
         voltScale = self.dRange[Channel] /codeRange
         # initialize a scaled float vector
         vData = []
-        for n1 in range(repeats):
+        for n1 in range(self.nRecord):
             self.AlazarRead(Channel, dataBuffer, bytesPerSample, n1+1,
-                            -0, samplesPerRecord)
+                            -self.nPreSize, samplesPerRecord)
             # convert and scale to float
             vBuffer = voltScale * ((np.array(dataBuffer[:samplesPerRecord]) - codeZero))
             # add to output vector
@@ -194,8 +194,8 @@ class AlazarTechDigitizer():
 
         return vData
 
-    def get_Traces(self, samplesPerRecord=1024, repeats=1000, timeout = 10):
-        self.AlazarSetRecordSize(0, samplesPerRecord)
+    def get_Traces(self, preTriggerSamples=0, postTriggerSamples=1024, repeats=1000, timeout = 10):
+        self.AlazarSetRecordSize(preTriggerSamples, postTriggerSamples)
         self.AlazarSetRecordCount(repeats)
         self.AlazarStartCapture()
 
@@ -209,5 +209,5 @@ class AlazarTechDigitizer():
             self.AlazarAbortCapture()
             raise Exception('Acquisition timed out')
 
-        return (self.readTraces(CHANNEL_A, samplesPerRecord, repeats),
-                self.readTraces(CHANNEL_B, samplesPerRecord, repeats))
+        return (self.readTraces(CHANNEL_A),
+                self.readTraces(CHANNEL_B))

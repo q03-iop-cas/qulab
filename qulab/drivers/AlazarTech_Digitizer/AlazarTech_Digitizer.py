@@ -178,7 +178,7 @@ class Driver(BaseDriver):
             return ret
         return []
 
-    def getTraces(self, samplesPerRecord=1024, repeats=1000, timeout = 10):
+    def getTraces(self, samplesPerRecord=1024, pre=0, repeats=1000, timeout = 10):
         self.__load_wrapper()
         self.set_configs()
         ChA, ChB = [], []
@@ -188,12 +188,12 @@ class Driver(BaseDriver):
         try:
             if last < repeats:
                 for i in range(loop):
-                    a, b = self.dig.get_Traces(samplesPerRecord, max, timeout)
+                    a, b = self.dig.get_Traces(pre, samplesPerRecord-pre, max, timeout)
                     ChA.extend(a)
                     ChB.extend(b)
-            a, b = self.dig.get_Traces(samplesPerRecord, last, timeout)
+            a, b = self.dig.get_Traces(pre, samplesPerRecord-pre, last, timeout)
             ChA.extend(a)
             ChB.extend(b)
         except:
             raise
-        return ChA, ChB
+        return np.array(ChA), np.array(ChB)
